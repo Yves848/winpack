@@ -15,14 +15,6 @@
                               W:::::W         W:::::W         i::::::i n::::n    n::::n
                               W:::W           W:::W          i::::::i n::::n    n::::n
                                 WWW             WWW           iiiiiiii nnnnnn    nnnnnn
-                                                                                      
-                                                                                      
-                                                                                      
-                                                                                      
-                                                                                      
-                                                                                      
-                                                                                      
-                                                                                                
                                                                                                 
                                                                             kkkkkkkk           
                                                                             k::::::k           
@@ -52,7 +44,7 @@
 
 Demo : https://youtu.be/pQgwch9dDUg
   
-  
+
 
 Winpack is a TUI for the Winget CLI.
 
