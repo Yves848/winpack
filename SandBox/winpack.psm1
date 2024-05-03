@@ -77,6 +77,9 @@ function Get-WGPackage {
     $packages = $packages | Where-Object { $_.Source -eq $source }
   }
 
+  if ($update) {
+    $packages = $packages | Where-Object { $_.IsUpdateAvailable -eq $true }
+  }
   
   # if ($interactive) {
     [column[]]$cols = @()
@@ -107,7 +110,7 @@ function Get-WGPackage {
     if ($c) {
       $c | ForEach-Object {
         $index = $choices2.IndexOf($_)
-        $packages += $InstalledPackages[$index] | Select-Object -Property * -ExcludeProperty Available
+        $packages += $InstalledPackages[$index] #| Select-Object -Property * -ExcludeProperty Available
       }
     }
     Clear-Host
@@ -115,18 +118,63 @@ function Get-WGPackage {
   if ($session) {
     Close-Spinner -session $Session -runspace $runspace
   } 
-  return $packages
+  if($uninstall) {
+    uninstallPackages -packages $packages
+  }
+
+  if($update) {
+    updatePackages -packages $packages
+  }
+  return $packages | Select-Object -Property * -ExcludeProperty Available
 }
+
+function installPackages {
+  param(
+    [package[]]$packages
+  )
+  $packages | ForEach-Object {
+    $Session, $runspace = Open-Spinner -label "Installing $($_.Name)" -type "Dots"
+    $command = "winget install --id $($_.Id)"
+    Invoke-Expression $command | Out-Null
+    Close-Spinner -session $Session -runspace $runspace
+  }
+}
+
+function uninstallPackages {
+  param(
+    [package[]]$packages
+  )
+  $packages | ForEach-Object {
+    $Session, $runspace = Open-Spinner -label "Uninstalling $($_.Name)" -type "Dots"
+    $command = "winget uninstall --id $($_.Id)"
+    Invoke-Expression $command | Out-Null
+    Close-Spinner -session $Session -runspace $runspace
+  }
+}
+
+function updatePackages {
+  param(
+    [package[]]$packages
+  )
+  $packages | ForEach-Object {
+    $Session, $runspace = Open-Spinner -label "Unpdating $($_.Name)" -type "Dots"
+    $command = "winget upgrade --id $($_.Id)"
+    Invoke-Expression $command | Out-Null
+    Close-Spinner -session $Session -runspace $runspace
+  }
+}
+
 
 function Find-WGPackage {
   param(
     [string]$query = $null,
-    [string]$source = $null
+    [string]$source = $null,
+    [switch]$install = $false
   )
   
   $SearchParams = @{}
   $Y = $host.ui.rawui.CursorPosition.Y 
-  $buffer = gum style "Enter search query" --border "rounded" --width ($Host.UI.RawUI.BufferSize.Width - 2)
+  $buffer = gum style "Enter search query" --border "rounded" --width ($Host.UI.RawUI.BufferSize.Width - 2) --border-foreground $($Theme["purple"])
   $buffer | ForEach-Object {
     [System.Console]::write($_)
   }
@@ -184,7 +232,7 @@ function Find-WGPackage {
     gum style --border "rounded" --width $width "$title`n$header" --border-foreground $($Theme["purple"]) 
     # $c = $choices | gum choose  --selected-prefix "✔️" --no-limit --cursor "👉 " --height $height 
     $c = $choices | gum filter  --no-limit  --height $height --indicator "👉 " --placeholder "Search in the list" --prompt.foreground $($Theme["yellow"]) --prompt "🔎 "
-    $packages = @()
+    [package[]]$packages = @()
     if ($c) {
       $c | ForEach-Object {
         $index = ($choices -split '\n').IndexOf($_)
@@ -196,19 +244,10 @@ function Find-WGPackage {
   else {
     Close-Spinner -session $Session -runspace $runspace
   }
-  return $packages
-}
-
-function isGumInstalled {
-  $gum = Get-Command -CommandType Application -Name gum -ErrorAction SilentlyContinue
-  if ($gum) {
-    return $true
+  if ($install) {
+    installPackages -packages $packages
   }
-  return $false
-}
 
-function installGum {
-  $command = "winget install --id charmbracelet.gum"
-  Invoke-Expression $command | Out-Null
-  $env:path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
+
+  return $packages | Select-Object -Property * -ExcludeProperty Available
 }
