@@ -12,7 +12,7 @@
     RootModule        = 'winpack.psm1'
 
     # Version number of this module.
-    ModuleVersion     = '0.1.0'
+    ModuleVersion     = '0.1.1'
 
     # Supported PSEditions
     # CompatiblePSEditions = @()
@@ -117,7 +117,7 @@
 
         
             # Prerelease string of this module
-            Prerelease   = 'alpha02'
+            Prerelease   = 'alpha01'
 
             # Flag to indicate whether the module requires explicit user acceptance for install/update/save
             # RequireLicenseAcceptance = $true

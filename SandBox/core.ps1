@@ -71,8 +71,11 @@ function Get-WGPackage {
   
   $Session, $runspace = Open-Spinner -label "Loading Packages List" -type "Dots"
   
-  $packages = Get-WinGetPackage | Where-Object { $_.Source -eq $source }
+  $packages = Get-WinGetPackage 
 
+  if ($source) {
+    $packages = $packages | Where-Object { $_.Source -eq $source }
+  }
   
   # if ($interactive) {
     [column[]]$cols = @()
@@ -114,49 +117,6 @@ function Get-WGPackage {
   return $packages
 }
 
-function Update-WGPackage { 
-  param(
-    [string]$source = $null,
-    [switch]$interactive = $false
-  )
-  $GetParams = @{}
-  if ($source) {
-    $GetParams.Add("source", $source)
-  }
-  
-  $Session, $runspace = Open-Spinner -label "Loading Packages List" -type "Dots"
-  
-  $packages = Get-WinGetPackage | Where-Object { $_.IsUpdateAvailable }
-
-  Close-Spinner -session $Session -runspace $runspace
-  if ($interactive) {
-    [column[]]$cols = @()
-    $cols += [column]::new("Name", "Name", 35)
-    $cols += [column]::new("Id", "Id", 35)
-    $cols += [column]::new("InstalledVersion", "Version", 15)
-    $cols += [column]::new("Available", "Available", 15)
-    [package[]]$InstalledPackages = @()
-    $packages | ForEach-Object {
-      $InstalledPackages += [package]::new($_.Name, $_.Id, $_.InstalledVersion, $_.AvailableVersions[0])
-    }
-    $choices = makeLines -columns $cols -items $InstalledPackages
-    $height = $Host.UI.RawUI.BufferSize.Height - 6
-    $width = $Host.UI.RawUI.BufferSize.Width - 2
-    $title = makeTitle -title "Choose a package to update" -width $width
-    $header = makeHeader -columns $cols
-    gum style --border "rounded" --width $width "$title`n$header" --border-foreground $($Theme["purple"])
-    $c = $choices | gum choose  --selected-prefix "✔️" --no-limit --cursor "👉 " --height $height
-    $packages = @()
-    if ($c) {
-      $c | ForEach-Object {
-        $index = ($choices -split '\n').IndexOf($_)
-        $packages += $InstalledPackages[$index]
-      }
-    }
-    # Clear-Host
-  }
-  return $packages
-}
 
 function Find-WGPackage {
   param(

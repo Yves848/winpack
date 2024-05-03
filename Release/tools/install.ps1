@@ -26,4 +26,5 @@ if (-not (isGumInstalled)) {
 
 if (-not (isWingetCLIInstalled)) {
  Install-Module -Name Microsoft.Winget.Client -Force
+ $env:path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
 }
