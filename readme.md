@@ -50,6 +50,10 @@
 
 ***
 
+Demo : https://youtu.be/pQgwch9dDUg
+  
+  
+
 Winpack is a TUI for the Winget CLI.
 
 It uses charmbracelet/gum to render the output in the terminal.
