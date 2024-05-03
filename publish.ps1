@@ -1,4 +1,4 @@
-$content = Import-PowerShellDataFile .\Winget-posh\wingetposh.psd1
+$content = Import-PowerShellDataFile .\Release\winpack.psd1
 if ($content.PrivateData.PSData.Prerelease) {
   $versionP = "$($content.ModuleVersion)","$($content.PrivateData.PSData.Prerelease)" -join "-" 
   $preRelease = $true
@@ -20,13 +20,13 @@ if ((Test-Path -Path  $folder) -ne $true) {
   mkdir -Path  $folder
 }
 
-Copy-Item -Path ".\Winget-posh\*" -Destination "$folder\" -Force -Recurse
+Copy-Item -Path ".\Release\*" -Destination "$folder\" -Force -Recurse
 
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 $pskey = Get-Content ~\.config\.private\apikey.txt
 Import-Module PowerShellGet
 $params = @{
-  Name = "wingetposh"
+  Name = "winpack"
   NuGetApiKey = $pskey
   Verbose = $true
   RequiredVersion = $versionP
