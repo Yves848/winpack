@@ -1,0 +1,6 @@
+{
+  "crosshair.enabled": true,
+  "githubPullRequests.ignoredPullRequestBranches": [
+    "master"
+  ]
+}
