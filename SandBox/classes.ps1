@@ -63,6 +63,51 @@ class package {
   }
 }
 
+class Spinner {
+  [hashtable]$Spinner
+  [System.Collections.Hashtable]$statedata
+  [runspacefactory]$runspace
+  [powershell]$session
+  [Int32]$X
+  [Int32]$Y
+
+  Spinner(
+    [string]$type
+  ) {
+    $this.Spinners = @{
+      "Circle" = @{
+        "Frames" = @("◜", "◠", "◝", "◞", "◡", "◟")
+        "Sleep"  = 50
+      }
+      "Dots"    = @{
+        "Frames" = @("⣾", "⣽", "⣻", "⢿", "⡿", "⣟", "⣯", "⣷", "⣿")
+        "Sleep"  = 50
+      }
+      "Line"   = @{
+        "Frames" = @("▰▱▱▱▱▱▱", "▰▰▱▱▱▱▱", "▰▰▰▱▱▱▱", "▰▰▰▰▱▱▱", "▰▰▰▰▰▱▱", "▰▰▰▰▰▰▱", "▰▰▰▰▰▰▰", "▰▱▱▱▱▱▱")
+        "Sleep"  = 50
+      }
+      "Square" = @{
+        "Frames" = @("⣾⣿", "⣽⣿", "⣻⣿", "⢿⣿", "⡿⣿", "⣟⣿", "⣯⣿", "⣷⣿","⣿⣾", "⣿⣽", "⣿⣻", "⣿⢿", "⣿⡿", "⣿⣟", "⣿⣯", "⣿⣷")
+        "Sleep"  = 50
+      }
+      "Bubble" = @{
+        "Frames" = @("......","o.....","Oo....","oOo...",".oOo..","..oOo.","...oOo","....oO",".....o","....oO","...oOo","..oOo.",".oOo..","oOo...","Oo....","o.....","......")
+        "Sleep"  = 50
+      }
+      "Arrow"  = @{
+        "Frames" = @("≻    ", " ≻   ", "  ≻  ", "   ≻ ", "    ≻","    ≺", "   ≺ ", "  ≺  ", " ≺   ", "≺    ")
+        "Sleep"  = 50
+      }
+      "Pulse"  = @{
+        "Frames" = @("◾", "◾", "◼️", "◼️", "⬛", "⬛", "◼️", "◼️")
+        "Sleep"  = 50
+      }
+    }
+    $this.Spinner = $this.Spinners[$type]
+  }
+}
+
 $Theme = @{
   "background" = "#272935"
   "black" = "#272935"

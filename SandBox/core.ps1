@@ -81,11 +81,10 @@ function Get-WGPackage {
     $packages = $packages | Where-Object { $_.IsUpdateAvailable -eq $true }
   }
   
-  # if ($interactive) {
     [column[]]$cols = @()
     $cols += [column]::new("Name", "Name", 40)
     $cols += [column]::new("Id", "Id", 40)
-    $cols += [column]::new("InstalledVersion", "Version", 20)
+    $cols += [column]::new("InstalledVersion", "Version", 17)
     [package[]]$InstalledPackages = @()
     $packages | ForEach-Object {
       $InstalledPackages += [package]::new($_.Name, $_.Id, $_.AvailableVersions, $_.Source, $_.IsUpdateAvailable, $_.InstalledVersion)
@@ -114,7 +113,6 @@ function Get-WGPackage {
       }
     }
     Clear-Host
-  # }
   if ($session) {
     Close-Spinner -session $Session -runspace $runspace
   } 
@@ -164,7 +162,6 @@ function updatePackages {
   }
 }
 
-
 function Find-WGPackage {
   param(
     [string]$query = $null,
@@ -213,7 +210,6 @@ function Find-WGPackage {
     return $null
   }
   if ($packages) {
-    # Clear-Host
     [column[]]$cols = @()
     $cols += [column]::new("Name", "Name", 40)
     $cols += [column]::new("Id", "Id", 40)
@@ -230,7 +226,6 @@ function Find-WGPackage {
     $title = makeTitle -title "Choose Packages to Install" -width $width
     $header = makeHeader -columns $cols
     gum style --border "rounded" --width $width "$title`n$header" --border-foreground $($Theme["purple"]) 
-    # $c = $choices | gum choose  --selected-prefix "✔️" --no-limit --cursor "👉 " --height $height 
     $c = $choices | gum filter  --no-limit  --height $height --indicator "👉 " --placeholder "Search in the list" --prompt.foreground $($Theme["yellow"]) --prompt "🔎 "
     [package[]]$packages = @()
     if ($c) {
@@ -254,5 +249,5 @@ function Find-WGPackage {
 
 
 # Find-WGPackage -interactive -source "winget" -install
-Get-WGPackage -source "winget" -uninstall
+Get-WGPackage -source "winget"
 #Update-WGPackage -interactive
