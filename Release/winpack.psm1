@@ -1,8 +1,6 @@
-﻿$include = [System.IO.Path]::GetDirectoryName($myInvocation.MyCommand.Definition) 
-
-. "$include\visuals.ps1"
-. "$include\classes.ps1"
-. "$include\tools.ps1"
+﻿Import-Module "$PSScriptRoot\visuals.ps1" -Force
+Import-Module "$PSScriptRoot\classes.ps1" -Force
+Import-Module "$PSScriptRoot\tools.ps1" -Force
 
 $script:fields = Get-Content $env:USERPROFILE\.config\.wingetposh\locals.json | ConvertFrom-Json
 
@@ -68,8 +66,8 @@ function Get-WGPackage {
     }
     return $null
   }
-  
-  $Session, $runspace = Open-Spinner -label "Loading Packages List" -type "Dots"
+  $Spinner = [Spinner]::new("Dots")
+  $Spinner.Start("Loading Packages List")
   
   $packages = Get-WinGetPackage 
 
@@ -81,48 +79,46 @@ function Get-WGPackage {
     $packages = $packages | Where-Object { $_.IsUpdateAvailable -eq $true }
   }
   
-  # if ($interactive) {
-    [column[]]$cols = @()
-    $cols += [column]::new("Name", "Name", 40)
-    $cols += [column]::new("Id", "Id", 40)
-    $cols += [column]::new("InstalledVersion", "Version", 20)
-    [package[]]$InstalledPackages = @()
-    $packages | ForEach-Object {
-      $InstalledPackages += [package]::new($_.Name, $_.Id, $_.AvailableVersions, $_.Source, $_.IsUpdateAvailable, $_.InstalledVersion)
-    }
-    $choices = makeLines -columns $cols -items $InstalledPackages
-    $width = $Host.UI.RawUI.BufferSize.Width - 2
-    $height = $Host.UI.RawUI.BufferSize.Height - 7
-    $title = makeTitle -title "List of Installed Packages" -width $width
-    $header = makeHeader -columns $cols
-    Close-Spinner -session $Session -runspace $runspace
-    gum style --border "rounded" --width $width "$title`n$header" --border-foreground $($Theme["purple"])
-    $c = $choices | gum filter  --no-limit  --height $height --indicator "👉 " --placeholder "Search in the list" --prompt.foreground $($Theme["yellow"]) --prompt "🔎 "
-    $choices2 = @()
+  [column[]]$cols = @()
+  $cols += [column]::new("Name", "Name", 40)
+  $cols += [column]::new("Id", "Id", 40)
+  $cols += [column]::new("InstalledVersion", "Version", 17)
+  [package[]]$InstalledPackages = @()
+  $packages | ForEach-Object {
+    $InstalledPackages += [package]::new($_.Name, $_.Id, $_.AvailableVersions, $_.Source, $_.IsUpdateAvailable, $_.InstalledVersion)
+  }
+  $choices = makeLines -columns $cols -items $InstalledPackages
+  $width = $Host.UI.RawUI.BufferSize.Width - 2
+  $height = $Host.UI.RawUI.BufferSize.Height - 7
+  $title = makeTitle -title "List of Installed Packages" -width $width
+  $header = makeHeader -columns $cols
+  
+  $Spinner.Stop()
+  [System.Console]::setcursorposition(0, $Y)
+  gum style --border "rounded" --width $width "$title`n$header" --border-foreground $($Theme["purple"])
+  $c = $choices | gum filter  --no-limit  --height $height --indicator "👉 " --placeholder "Search in the list" --prompt.foreground $($Theme["yellow"]) --prompt "🔎 "
+  $choices2 = @()
     ($choices -split '\n') | ForEach-Object {
-      $temp = $_ -replace [char]27,"@"
-      if ($temp -match '@[\[][\d1,3;]*m') {
-        $temp = $temp -replace '@[\[][\d1,3;]*m', ""
-      }
-      $choices2 += $temp
+    $temp = $_ -replace [char]27, "@"
+    if ($temp -match '@[\[][\d1,3;]*m') {
+      $temp = $temp -replace '@[\[][\d1,3;]*m', ""
     }
-    $packages = @()
-    if ($c) {
-      $c | ForEach-Object {
-        $index = $choices2.IndexOf($_)
-        $packages += $InstalledPackages[$index] #| Select-Object -Property * -ExcludeProperty Available
-      }
+    $choices2 += $temp
+  }
+  $packages = @()
+  if ($c) {
+    $c | ForEach-Object {
+      $index = $choices2.IndexOf($_)
+      $packages += $InstalledPackages[$index] #| Select-Object -Property * -ExcludeProperty Available
     }
-    Clear-Host
-  # }
-  if ($session) {
-    Close-Spinner -session $Session -runspace $runspace
-  } 
-  if($uninstall) {
+  }
+  Clear-Host
+   
+  if ($uninstall) {
     uninstallPackages -packages $packages
   }
 
-  if($update) {
+  if ($update) {
     updatePackages -packages $packages
   }
   return $packages | Select-Object -Property * -ExcludeProperty Available
@@ -132,38 +128,52 @@ function installPackages {
   param(
     [package[]]$packages
   )
+  $Spinner = [Spinner]::new("Dots")
   $packages | ForEach-Object {
-    $Session, $runspace = Open-Spinner -label "Installing $($_.Name)" -type "Dots"
+    if (-not $Spinner.running) {
+      $Spinner.start("Installing $($_.Name)")
+    } else {
+      $Spinner.SetLabel("Installing $($_.Name)")
+    }
     $command = "winget install --id $($_.Id)"
     Invoke-Expression $command | Out-Null
-    Close-Spinner -session $Session -runspace $runspace
   }
+  $Spinner.Stop()
 }
 
 function uninstallPackages {
   param(
     [package[]]$packages
   )
+  $Spinner = [Spinner]::new("Dots")
   $packages | ForEach-Object {
-    $Session, $runspace = Open-Spinner -label "Uninstalling $($_.Name)" -type "Dots"
+    if (-not $Spinner.running) {
+      $Spinner.start("Uninstalling $($_.Name)")
+    } else {
+      $Spinner.SetLabel("Uninstalling $($_.Name)")
+    }
     $command = "winget uninstall --id $($_.Id)"
     Invoke-Expression $command | Out-Null
-    Close-Spinner -session $Session -runspace $runspace
   }
+  $Spinner.Stop()
 }
 
 function updatePackages {
   param(
     [package[]]$packages
   )
+  $Spinner = [Spinner]::new("Dots")
   $packages | ForEach-Object {
-    $Session, $runspace = Open-Spinner -label "Unpdating $($_.Name)" -type "Dots"
+    if (-not $Spinner.running) {
+      $Spinner.start("Upgrading $($_.Name)")
+    } else {
+      $Spinner.SetLabel("Upgrading $($_.Name)")
+    }
     $command = "winget upgrade --id $($_.Id)"
     Invoke-Expression $command | Out-Null
-    Close-Spinner -session $Session -runspace $runspace
   }
+  $Spinner.Stop()
 }
-
 
 function Find-WGPackage {
   param(
@@ -171,15 +181,16 @@ function Find-WGPackage {
     [string]$source = $null,
     [switch]$install = $false
   )
-  
+  [Spinner]$Spinner
   $SearchParams = @{}
   $Y = $host.ui.rawui.CursorPosition.Y 
-  $buffer = gum style "Enter search query" --border "rounded" --width ($Host.UI.RawUI.BufferSize.Width - 2) --border-foreground $($Theme["purple"])
+  $width = $Host.UI.RawUI.BufferSize.Width - 2
+  $buffer = gum style "Enter search query" --border "rounded" --width $width --border-foreground $($Theme["purple"])
   $buffer | ForEach-Object {
     [System.Console]::write($_)
   }
   
-  if (-not $query) {
+  if (-not $query -or $null -eq $query) {
     $query = gum input --placeholder "Search for a package" 
     $SearchParams.Add("query", $query)
   }
@@ -192,10 +203,16 @@ function Find-WGPackage {
   }
   if ($query) {
     $title = gum style $query --foreground "#00FF00" --bold
-    $Session, $runspace = Open-Spinner -label "Searching for $title in $source" -type "Dots"
+    $Spinner = [Spinner]::new("Dots")
+    
     $queries = $query.Split(",")
     $packages = @()
     $queries | ForEach-Object {
+      if (-not $Spinner.running) {
+        $Spinner.start("Searching for $_ in $source")
+      } else {
+        $Spinner.SetLabel("Searching for $_ in $source")
+      }
       $SearchParams["query"] = [string]$_.Trim()
       $packs = Find-WinGetPackage @SearchParams
       $packs | ForEach-Object {
@@ -206,14 +223,13 @@ function Find-WGPackage {
   }
   else {
     [System.Console]::setcursorposition(0, $Y)
-    $buffer = gum style "No query specified" --border "rounded" --width ($Host.UI.RawUI.BufferSize.Width - 2) --foreground "#FF0000"
+    $buffer = gum style "No query specified" --border "rounded" --width $width --foreground $($Theme["red"])
     $buffer | ForEach-Object {
       [System.Console]::write($_)
     }
     return $null
   }
   if ($packages) {
-    # Clear-Host
     [column[]]$cols = @()
     $cols += [column]::new("Name", "Name", 40)
     $cols += [column]::new("Id", "Id", 40)
@@ -223,14 +239,12 @@ function Find-WGPackage {
       $InstalledPackages += [package]::new($_.Name, $_.Id, $_.AvailableVersions, $_.Source, $_.IsUpdateAvailable, $_.InstalledVersion)
     }
     $choices = makeLines -columns $cols -items $InstalledPackages
-    Close-Spinner -session $Session -runspace $runspace
-    $width = $Host.UI.RawUI.BufferSize.Width - 2
-    $height = $Host.UI.RawUI.BufferSize.Height - 6
+    $Spinner.Stop()
+    $height = $Host.UI.RawUI.BufferSize.Height - 7
     [System.Console]::setcursorposition(0, $Y)
     $title = makeTitle -title "Choose Packages to Install" -width $width
     $header = makeHeader -columns $cols
     gum style --border "rounded" --width $width "$title`n$header" --border-foreground $($Theme["purple"]) 
-    # $c = $choices | gum choose  --selected-prefix "✔️" --no-limit --cursor "👉 " --height $height 
     $c = $choices | gum filter  --no-limit  --height $height --indicator "👉 " --placeholder "Search in the list" --prompt.foreground $($Theme["yellow"]) --prompt "🔎 "
     [package[]]$packages = @()
     if ($c) {
@@ -241,13 +255,11 @@ function Find-WGPackage {
     }
     Clear-Host
   }
-  else {
-    Close-Spinner -session $Session -runspace $runspace
-  }
   if ($install) {
     installPackages -packages $packages
   }
-
-
+  if ($Spinner) {
+    $Spinner.Stop()
+  }
   return $packages | Select-Object -Property * -ExcludeProperty Available
 }
