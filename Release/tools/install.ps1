@@ -15,7 +15,7 @@ function  isWingetCLIInstalled {
 }
 
 function installGum {
-  $command = "winget install --id charmbracelet.gum"
+  $command = "winget install --id charmbracelet.gum -v 0.13.0"
   Invoke-Expression $command | Out-Null
   $env:path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
 }
