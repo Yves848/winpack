@@ -2,32 +2,16 @@
 Import-Module "$PSScriptRoot\classes.ps1" -Force
 Import-Module "$PSScriptRoot\tools.ps1" -Force
 
-$script:fields = Get-Content $env:USERPROFILE\.config\.wingetposh\locals.json | ConvertFrom-Json
-
 [System.Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
-$env:GUM_CHOOSE_SELECTED_BACKGROUND = "22"
-$env:GUM_CHOOSE_SELECTED_FOREGROUND = "#ffffff"
+$env:GUM_CHOOSE_SELECTED_BACKGROUND = $Theme["green"]
+$env:GUM_CHOOSE_SELECTED_FOREGROUND = $Theme["white"]
+$env:GUM_FILTER_CURSOR_TEXT_UNDERLINE = 1 #cursor-text.underline
 
 
 $sources = @{
   "winget" = "winget"
   "scoop"  = "scoop"
-}
-
-function Get-FieldBAseNAme {
-  param(
-    [string]$name
-  )
-  $base = $script:fields.psobject.Properties | Where-Object { $_.Value -eq $name }
-  if ($base.count -eq 1) {
-    $BaseName = $base.Name
-  }
-  else {
-    $BaseName = ($base | Where-Object { $_.Name.StartsWith("Search") }).Name
-  }
-  
-  return $baseFields[$BaseName]
 }
 
 function Get-FieldLength {
@@ -96,6 +80,7 @@ function Get-WGPackage {
   $Spinner.Stop()
   [System.Console]::setcursorposition(0, $Y)
   gum style --border "rounded" --width $width "$title`n$header" --border-foreground $($Theme["purple"])
+  
   $c = $choices | gum filter  --no-limit  --height $height --indicator "👉 " --placeholder "Search in the list" --prompt.foreground $($Theme["yellow"]) --prompt "🔎 "
   $choices2 = @()
     ($choices -split '\n') | ForEach-Object {
@@ -121,6 +106,8 @@ function Get-WGPackage {
   if ($update) {
     updatePackages -packages $packages
   }
+
+  # Return choosen packages without the "Available" property
   return $packages | Select-Object -Property * -ExcludeProperty Available
 }
 
