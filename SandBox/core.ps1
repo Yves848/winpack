@@ -41,7 +41,7 @@ function Get-FieldLength {
   return $i
 }
 
-function Get-WGPackage { 
+function RetrievePackages {
   param(
     [string]$source = $null,
     [switch]$update = $false,
@@ -74,17 +74,27 @@ function Get-WGPackage {
   if ($update) {
     $packages = $packages | Where-Object { $_.IsUpdateAvailable -eq $true }
   }
-  
+
+  [package[]]$InstalledPackages = @()
+  $packages | ForEach-Object {
+    $InstalledPackages += [package]::new($_.Name, $_.Id, $_.AvailableVersions, $_.Source, $_.IsUpdateAvailable, $_.InstalledVersion)
+  }
+  $Spinner.Stop()
+  return $InstalledPackages
+}
+
+function ShowPackages {
+  param(
+    [package[]]$InstalledPackages,
+    [switch]$update = $false,
+    [switch]$uninstall = $false
+  )
   [column[]]$cols = @()
   $cols += [column]::new("Name", "Name", 35)
   $cols += [column]::new("Id", "Id", 35)
   $cols += [column]::new("InstalledVersion", "Version", 17, [Alignment]::Right)
   $cols += [column]::new("Source", "Source", 10)
   
-  [package[]]$InstalledPackages = @()
-  $packages | ForEach-Object {
-    $InstalledPackages += [package]::new($_.Name, $_.Id, $_.AvailableVersions, $_.Source, $_.IsUpdateAvailable, $_.InstalledVersion)
-  }
   $choices = makeLines -columns $cols -items $InstalledPackages
   $width = $Host.UI.RawUI.BufferSize.Width - 2
   $height = $Host.UI.RawUI.BufferSize.Height - 7
@@ -99,7 +109,7 @@ function Get-WGPackage {
   }
   $header = makeHeader -columns $cols
   
-  $Spinner.Stop()
+  # $Spinner.Stop()
   [System.Console]::setcursorposition(0, $Y)
   $title = gum style --border "rounded" --width ($width) "$title`n$header" --border-foreground $($Theme["purple"])
   GumOutput -text $title
@@ -121,16 +131,41 @@ function Get-WGPackage {
     }
   }
   Clear-Host
-   
+  # Return choosen packages without the "Available" property
+  return $packages | Select-Object -Property * -ExcludeProperty Available
+}
+
+function Get-WGPackage { 
+  param(
+    [string]$source = $null,
+    [switch]$update = $false,
+    [switch]$uninstall = $false
+  )
+  $params = @{}
+  if ($source) {
+    $params.Add("source", $source)
+  }
+  if ($update) {
+    $params.Add("update", $true)
+  }
   if ($uninstall) {
+    $params.Add("uninstall", $true)
+  }
+  $packages = RetrievePackages @params
+  if ($packages) {
+    $params = $params | Select-Object -Property * -ExcludeProperty source
+    $packages = ShowPackages -InstalledPackages $packages @($params) 
+  }
+
+  if ($uninstall -eq $true) {
     uninstallPackages -packages $packages
   }
 
-  if ($update) {
+  if ($update -eq $true) {
     updatePackages -packages $packages
   }
-  # Return choosen packages without the "Available" property
-  return $packages | Select-Object -Property * -ExcludeProperty Available
+
+  return $packages
 }
 
 function installPackages {
@@ -283,41 +318,64 @@ function Find-WGPackage {
 }
 
 function Build-Script {
-  $packages = Get-WGPackage -source "winget"
-  if ($packages) {
-    $result = gum style "Choose a script type :" --foreground $($Theme["brightGreen"]) --bold --border rounded --width ($Host.UI.RawUI.BufferSize.Width - 2) --align center
-    GumOutput -text $result
-    $types = @(
-      "Winget",
-      "Winpack"
-    )
-    $type = $types -join "`n" | gum choose
-    $file = gum input --placeholder "Enter the name of the script (without extension)"
-    $index = $types.IndexOf($type)
-    switch ($index) {
-      0 { 
-        if (Test-Path -Path "$file.ps1") {
-          $replace = gum confirm "File already exists, do you want to replace it?" --affirmative "Yes" --negative "No" && $true || $false
-          if ($replace) {
-            Remove-Item -Path "$file.ps1" -Force
-            $null = New-Item -ItemType File -Path "$file.ps1" -Force
+  $first = $true	
+  $packages = RetrievePackages -source "winget"
+  while ($true) {
+    $Selectedpackages = ShowPackages -InstalledPackages $packages
+    if ($Selectedpackages) {
+      $result = gum style "Choose a script type :" --foreground $($Theme["brightGreen"]) --bold --border rounded --width ($Host.UI.RawUI.BufferSize.Width - 2) --align center
+      GumOutput -text $result
+      $types = @(
+        "Winget",
+        "Winpack"
+      )
+      $type = $types -join "`n" | gum choose
+      if ($first) {
+        $file = gum input --placeholder "Enter the name of the script (without extension)"
+      }
+      $index = $types.IndexOf($type)
+      switch ($index) {
+        0 { 
+          $filename = "$file.ps1"
+          if (Test-Path -Path $filename) {
+            $replace = gum confirm "File already exists, do you want to replace it?" --affirmative "Yes" --negative "No" && $true || $false
+            if ($replace) {
+              Remove-Item -Path $filename -Force
+              $null = New-Item -ItemType File -Path $filename -Force
+            }
           }
+          $Selectedpackages | ForEach-Object {
+            "winget install -id $($_.Id)" | Out-File -FilePath $filename -Append
+          }
+          $first = $false
+          Clear-Host
+          # $result = gum style "Script saved as $file.ps1" --foreground $($Theme["brightYellow"]) --bold --border rounded --width ($Host.UI.RawUI.BufferSize.Width - 2) --align center
+          # GumOutput -text $result
         }
-        $packages | ForEach-Object {
-          "winget install -id $($_.Id)" | Out-File -FilePath "$file.ps1" -Append
+        1 {  
+          $filename = "$file.json"
+          if (Test-Path -Path $filename) {
+            $replace = gum confirm "File already exists, do you want to replace it?" --affirmative "Yes" --negative "No" && $true || $false
+            if ($replace) {
+              Remove-Item -Path $filename -Force
+              $null = New-Item -ItemType File -Path $filename -Force
+            }
+          }
+          $Selectedpackages | ConvertTo-Json -AsArray | Out-File -FilePath $filename -Append
+          $first = $false
+          
         }
-        $result = gum style "Script saved as $file.ps1" --foreground $($Theme["brightYellow"]) --bold --border rounded --width ($Host.UI.RawUI.BufferSize.Width - 2) --align center
-        GumOutput -text $result
+        Default { return $null }
       }
-      1 {  
-        $packages | ConvertTo-Json -AsArray | Out-File -FilePath "$file.json"
-        $result = gum style "Script saved as $file.json" --foreground $($Theme["brightYellow"]) --bold --border rounded --width ($Host.UI.RawUI.BufferSize.Width - 2) --align center
-        GumOutput -text $result
-      }
-
-      Default { return $null }
+    }
+    $replace = gum confirm "Would you add some entries to the file ?" --affirmative "Yes" --negative "No" && $true || $false
+    if (-not $replace) {
+      break
     }
   }
+  $result = gum style "Script saved as $filename" --foreground $($Theme["brightYellow"]) --bold --border rounded --width ($Host.UI.RawUI.BufferSize.Width - 2) --align center
+  Clear-Host
+  GumOutput -text $result
 }
 
 function Start-Winpack {
@@ -331,6 +389,7 @@ function Start-Winpack {
       "Install Packages",
       "Update Packages",
       "Uninstall Packages",
+      "Build Script",
       "Exit"
     )
     $choice = $options -join "`n" | gum choose 
@@ -342,7 +401,8 @@ function Start-Winpack {
       2 { Find-WGPackage -install }
       3 { Get-WGPackage -update }
       4 { Get-WGPackage -uninstall }
-      5 { $result = -1 }
+      5 { Build-Script }
+      6 { $result = -1 }
       Default { $result = -1 }
     }
   }
