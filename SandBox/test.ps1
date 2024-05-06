@@ -1,3 +1,4 @@
-winget install -id Microsoft.VisualStudio.2022.Community
+winget install -id Git.Git
 winget install -id CoreyButler.NVMforWindows
 winget install -id CPUID.CPU-Z
+winget install -id GitHub.GitHubDesktop

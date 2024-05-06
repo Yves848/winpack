@@ -132,7 +132,7 @@ function ShowPackages {
   }
   Clear-Host
   # Return choosen packages without the "Available" property
-  return $packages | Select-Object -Property * -ExcludeProperty Available
+  return $packages #| Select-Object -Property * -ExcludeProperty Available
 }
 
 function Get-WGPackage { 
@@ -165,7 +165,7 @@ function Get-WGPackage {
     updatePackages -packages $packages
   }
 
-  return $packages
+  return $packages | Select-Object -Property * -ExcludeProperty Available
 }
 
 function installPackages {
