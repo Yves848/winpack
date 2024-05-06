@@ -101,7 +101,8 @@ function Get-WGPackage {
   
   $Spinner.Stop()
   [System.Console]::setcursorposition(0, $Y)
-  gum style --border "rounded" --width $width "$title`n$header" --border-foreground $($Theme["purple"])
+  $title = gum style --border "rounded" --width ($width) "$title`n$header" --border-foreground $($Theme["purple"])
+  GumOutput -text $title
   
   $c = $choices | gum filter  --no-limit  --height $height --placeholder "Search in the list" --prompt.foreground $($Theme["yellow"]) --prompt "🔎 "
   $choices2 = @()
@@ -260,7 +261,7 @@ function Find-WGPackage {
     $title = makeTitle -title "Choose Packages to Install" -width $width
     $header = makeHeader -columns $cols
     $Spinner.Stop()
-    clear-host
+    Clear-Host
     gum style --border "rounded" --width $width "$title`n$header" --border-foreground $($Theme["purple"]) 
     $c = $choices | gum filter  --no-limit  --height $height --placeholder "Search in the list" --prompt.foreground $($Theme["yellow"]) --prompt "🔎 "
     [package[]]$packages = @()
@@ -279,6 +280,44 @@ function Find-WGPackage {
     $Spinner.Stop()
   }
   return $packages | Select-Object -Property * -ExcludeProperty Available
+}
+
+function Build-Script {
+  $packages = Get-WGPackage -source "winget"
+  if ($packages) {
+    $result = gum style "Choose a script type :" --foreground $($Theme["brightGreen"]) --bold --border rounded --width ($Host.UI.RawUI.BufferSize.Width - 2) --align center
+    GumOutput -text $result
+    $types = @(
+      "Winget",
+      "Winpack"
+    )
+    $type = $types -join "`n" | gum choose
+    $file = gum input --placeholder "Enter the name of the script (without extension)"
+    $index = $types.IndexOf($type)
+    switch ($index) {
+      0 { 
+        if (Test-Path -Path "$file.ps1") {
+          $replace = gum confirm "File already exists, do you want to replace it?" --affirmative "Yes" --negative "No" && $true || $false
+          if ($replace) {
+            Remove-Item -Path "$file.ps1" -Force
+            $null = New-Item -ItemType File -Path "$file.ps1" -Force
+          }
+        }
+        $packages | ForEach-Object {
+          "winget install -id $($_.Id)" | Out-File -FilePath "$file.ps1" -Append
+        }
+        $result = gum style "Script saved as $file.ps1" --foreground $($Theme["brightYellow"]) --bold --border rounded --width ($Host.UI.RawUI.BufferSize.Width - 2) --align center
+        GumOutput -text $result
+      }
+      1 {  
+        $packages | ConvertTo-Json -AsArray | Out-File -FilePath "$file.json"
+        $result = gum style "Script saved as $file.json" --foreground $($Theme["brightYellow"]) --bold --border rounded --width ($Host.UI.RawUI.BufferSize.Width - 2) --align center
+        GumOutput -text $result
+      }
+
+      Default { return $null }
+    }
+  }
 }
 
 function Start-Winpack {
