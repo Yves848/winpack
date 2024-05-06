@@ -1,7 +1,15 @@
-﻿class column {
+﻿enum alignment {
+  Left = 0
+  Right
+  Center
+}
+
+class column {
   [string]$FieldName
   [string]$Label
   [int]$Width #Percentage
+  [alignment]$Align = [alignment]::Left
+
 
   column(
     [string]$FieldName,
@@ -12,6 +20,20 @@
     $this.Label = $Label
     $this.Width = $Width
   }
+  
+  column(
+    [string]$FieldName,
+    [string]$Label,
+    [int]$Width,
+    [alignment]$Align
+  ) {
+    $this.FieldName = $FieldName
+    $this.Label = $Label
+    $this.Width = $Width
+    $this.Align = $Align
+  }
+
+  
 }
 
 class package {
@@ -71,6 +93,7 @@ class Spinner {
   [Int32]$X = $Host.UI.RawUI.CursorPosition.X
   [Int32]$Y = $Host.UI.RawUI.CursorPosition.Y
   [bool]$running = $false
+  [Int32]$width = $Host.UI.RawUI.BufferSize.Width
 
   $Spinners = @{
     "Circle" = @{
@@ -176,10 +199,14 @@ class Spinner {
 
   [void] Stop() {
     if ($this.running -eq $true) {
+      [System.Console]::setcursorposition(0, $this.Y)
+      [system.console]::write("".PadLeft($this.Width, " "))
       $this.running = $false
       $this.session.Stop()
       $this.runspace.Close()
       $this.runspace.Dispose()
+      [System.Console]::setcursorposition($this.X, $this.Y)
+      [system.Console]::CursorVisible = $true
     } 
   }
 }

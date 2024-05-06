@@ -42,7 +42,7 @@
 
 ***
 
-Demo : https://youtu.be/1zmkSVk-O_A
+Demo : https://youtu.be/2w0F-dNfH70
   
 
 
@@ -51,8 +51,10 @@ Winpack is a TUI for the Winget CLI.
 It uses charmbracelet/gum to render the output in the terminal.
 
 Dependencies :
-- charmbracelet-gum
+- charmbracelet-gum (0.13.0)
 - Winget-Cli  
+
+*Remark*: If it's not already installed, the module will install ***Gum 0.13.0*** .  Starting with 0.14.0, there are some minor differences of usage.  Although this is not unusable, 0.13.0 is, for now, better suited to this module.
 
 **These two dependencies are automatically installed if they're not found when the module loads.** 
 *** 
@@ -60,6 +62,7 @@ Dependencies :
 ## Functions : 
 - Get-WGPackages
 - Find-WGPackages
+- Start-Winpack
 - .... more to come
 
 ### Get-WGPackages
@@ -145,3 +148,14 @@ The _-Source_ parameter allows to narrow the search to a specified source.
 For now,  "winget" and "msstore" are the available options. **Scoop** will come later.
 
 The *filter* function uses a regex to search in every field of the list.  
+***
+### StartWinpack
+Usage : 
+```
+Start-Winpack
+```
+This is a simple menu that wrap the functions of the module in a basic visual way.
+
+![](./images/start-winpack.png)
+
+To exit the menu, choose "Exit" or press *Esc*
