@@ -5,10 +5,19 @@ Import-Module "$PSScriptRoot\tools.ps1" -Force
 [System.Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
 # GUM dfault environment variables
+$env:GUM_FILTER_INDICATOR = "▶ "
+$env:GUM_FILTER_INDICATOR_FOREGROUND = $Theme["green"]
 $env:BORDER_FOREGROUND = $($Theme["purple"])
 $env:GUM_CHOOSE_SELECTED_BACKGROUND = $Theme["green"]
 $env:GUM_CHOOSE_SELECTED_FOREGROUND = $Theme["white"]
 $env:GUM_FILTER_CURSOR_TEXT_UNDERLINE = 1 #cursor-text.underline
+
+$module = Get-InstalledModule -Name winpack -ErrorAction SilentlyContinue
+if (-not $module) {
+  $Script:version = "debug"
+} else {
+  $Script:version = $module.Version
+}
 
 
 $sources = @{
@@ -85,7 +94,7 @@ function Get-WGPackage {
   [System.Console]::setcursorposition(0, $Y)
   gum style --border "rounded" --width $width "$title`n$header" --border-foreground $($Theme["purple"])
   
-  $c = $choices | gum filter  --no-limit  --height $height --indicator "👉 " --placeholder "Search in the list" --prompt.foreground $($Theme["yellow"]) --prompt "🔎 "
+  $c = $choices | gum filter  --no-limit  --height $height --placeholder "Search in the list" --prompt.foreground $($Theme["yellow"]) --prompt "🔎 "
   $choices2 = @()
     ($choices -split '\n') | ForEach-Object {
     $temp = $_ -replace [char]27, "@"
@@ -118,7 +127,7 @@ function installPackages {
   param(
     [package[]]$packages
   )
-  $Spinner = [Spinner]::new("Dots")
+  $Spinner = [Spinner]::new("Bubble")
   $packages | ForEach-Object {
     if (-not $Spinner.running) {
       $Spinner.start("Installing $($_.Name)")
@@ -136,7 +145,7 @@ function uninstallPackages {
   param(
     [package[]]$packages
   )
-  $Spinner = [Spinner]::new("Dots")
+  $Spinner = [Spinner]::new("Bubble")
   $packages | ForEach-Object {
     if (-not $Spinner.running) {
       $Spinner.start("Uninstalling $($_.Name)")
@@ -154,7 +163,7 @@ function updatePackages {
   param(
     [package[]]$packages
   )
-  $Spinner = [Spinner]::new("Dots")
+  $Spinner = [Spinner]::new("Bubble")
   $packages | ForEach-Object {
     if (-not $Spinner.running) {
       $Spinner.start("Upgrading $($_.Name)")
@@ -242,7 +251,7 @@ function Find-WGPackage {
     $header = makeHeader -columns $cols
     $Spinner.Stop()
     gum style --border "rounded" --width $width "$title`n$header" --border-foreground $($Theme["purple"]) 
-    $c = $choices | gum filter  --no-limit  --height $height --indicator "👉 " --placeholder "Search in the list" --prompt.foreground $($Theme["yellow"]) --prompt "🔎 "
+    $c = $choices | gum filter  --no-limit  --height $height --placeholder "Search in the list" --prompt.foreground $($Theme["yellow"]) --prompt "🔎 "
     [package[]]$packages = @()
     if ($c) {
       $c | ForEach-Object {
@@ -261,6 +270,9 @@ function Find-WGPackage {
   return $packages | Select-Object -Property * -ExcludeProperty Available
 }
 
+function Start-Winpack {
+  gum style "Welcome to WinPack $script:version" --foreground $($Theme["brightYellow"]) --bold
+}
 
 # Find-WGPackage -source "winget"
 # Get-WGPackage -source "winget"

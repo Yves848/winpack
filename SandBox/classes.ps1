@@ -93,6 +93,7 @@ class Spinner {
   [Int32]$X = $Host.UI.RawUI.CursorPosition.X
   [Int32]$Y = $Host.UI.RawUI.CursorPosition.Y
   [bool]$running = $false
+  [Int32]$width = $Host.UI.RawUI.BufferSize.Width
 
   $Spinners = @{
     "Circle" = @{
@@ -198,10 +199,14 @@ class Spinner {
 
   [void] Stop() {
     if ($this.running -eq $true) {
+      [System.Console]::setcursorposition(0, $this.Y)
+      [system.console]::write("".PadLeft($this.Width, " "))
       $this.running = $false
       $this.session.Stop()
       $this.runspace.Close()
       $this.runspace.Dispose()
+      [System.Console]::setcursorposition($this.X, $this.Y)
+      [system.Console]::CursorVisible = $true
     } 
   }
 }
