@@ -15,7 +15,8 @@ $env:GUM_FILTER_CURSOR_TEXT_UNDERLINE = 1 #cursor-text.underline
 $module = Get-InstalledModule -Name winpack -ErrorAction SilentlyContinue
 if (-not $module) {
   $Script:version = "debug"
-} else {
+}
+else {
   $Script:version = $module.Version
 }
 
@@ -77,7 +78,7 @@ function Get-WGPackage {
   [column[]]$cols = @()
   $cols += [column]::new("Name", "Name", 35)
   $cols += [column]::new("Id", "Id", 35)
-  $cols += [column]::new("InstalledVersion", "Version", 17,[Alignment]::Right)
+  $cols += [column]::new("InstalledVersion", "Version", 17, [Alignment]::Right)
   $cols += [column]::new("Source", "Source", 10)
   
   [package[]]$InstalledPackages = @()
@@ -87,7 +88,15 @@ function Get-WGPackage {
   $choices = makeLines -columns $cols -items $InstalledPackages
   $width = $Host.UI.RawUI.BufferSize.Width - 2
   $height = $Host.UI.RawUI.BufferSize.Height - 7
-  $title = makeTitle -title "List of Installed Packages" -width $width
+  if ($update) {
+    $title = makeTitle -title "List of Packages to Update" -width $width
+  }
+  elseif ($uninstall) {
+    $title = makeTitle -title "List of Packages to Uninstall" -width $width
+  }
+  else {
+    $title = makeTitle -title "List of Installed Packages" -width $width
+  }
   $header = makeHeader -columns $cols
   
   $Spinner.Stop()
@@ -234,10 +243,11 @@ function Find-WGPackage {
     return $null
   }
   if ($packages) {
+   
     [column[]]$cols = @()
     $cols += [column]::new("Name", "Name", 35)
     $cols += [column]::new("Id", "Id", 35)
-    $cols += [column]::new("Available", "Version", 17,[Alignment]::Right)
+    $cols += [column]::new("Available", "Version", 17, [Alignment]::Right)
     $cols += [column]::new("Source", "Source", 10)
 
     [package[]]$InstalledPackages = @()
@@ -250,6 +260,7 @@ function Find-WGPackage {
     $title = makeTitle -title "Choose Packages to Install" -width $width
     $header = makeHeader -columns $cols
     $Spinner.Stop()
+    clear-host
     gum style --border "rounded" --width $width "$title`n$header" --border-foreground $($Theme["purple"]) 
     $c = $choices | gum filter  --no-limit  --height $height --placeholder "Search in the list" --prompt.foreground $($Theme["yellow"]) --prompt "🔎 "
     [package[]]$packages = @()
@@ -271,9 +282,32 @@ function Find-WGPackage {
 }
 
 function Start-Winpack {
-  gum style "Welcome to WinPack $script:version" --foreground $($Theme["brightYellow"]) --bold
+  Clear-Host
+  $result = 0
+  while ($result -ne -1) {
+    gum style "Welcome to WinPack $script:version" --foreground $($Theme["brightYellow"]) --bold --border rounded --width ($Host.UI.RawUI.BufferSize.Width - 2) --align center
+    $options = @(
+      "Find Packages",
+      "List Installed Packages",
+      "Install Packages",
+      "Update Packages",
+      "Uninstall Packages",
+      "Exit"
+    )
+    $choice = $options -join "`n" | gum choose 
+    Clear-Host
+    $index = $options.IndexOf($choice)
+    switch ($index) {
+      0 { Find-WGPackage }
+      1 { get-WGPackage }
+      2 { Find-WGPackage -install }
+      3 { Get-WGPackage -update }
+      4 { Get-WGPackage -uninstall }
+      5 { $result = -1 }
+      Default { $result = -1 }
+    }
+  }
 }
-
 # Find-WGPackage -source "winget"
 # Get-WGPackage -source "winget"
 #Update-WGPackage -interactive
