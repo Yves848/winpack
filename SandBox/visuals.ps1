@@ -232,14 +232,6 @@ class window {
   }
 }
 
-class Grid {
-  [int]$X
-  [int]$Y
-  [int]$Width
-  [int]$Height
-  
-}
-
 function makeLines {
   param(
     [column[]]$columns,
@@ -259,7 +251,7 @@ function makeLines {
     $columns | ForEach-Object {
       $fieldname = $_.FieldName
       $width = [int32]$_.Width
-      $buffer = TruncateString -InputString $([string]$item."$fieldname") -MaxLength $width
+      $buffer = TruncateString -InputString $([string]$item."$fieldname") -MaxLength $width -Align $_.Align
       $temp = [string]::Concat($temp,[string]$buffer," ")
     }
 
@@ -278,9 +270,23 @@ function makeHeader {
     [column[]]$columns
   )
   $header = "   "
+  $index = 0
+  # TODO: #1 fix the white line if the terminal is too small
   $columns | ForEach-Object {
     $w = Get-ProportionalLength -MaxLength $_.Width
-    $header = [string]::Concat($header, $_.Label.PadRight($w," "), " ")
+    $filler = " "
+    if ($index -eq $columns.Count - 1) {
+      $filler = ""
+    }
+    $Label = $_.Label
+    switch ($_.Align) {
+      # TODO: #4 Add Center alignment
+      Left { $colName = $Label.PadRight($w," ") }
+      Right { $colName = $Label.PadLeft($w," ") }
+      Default {}
+    }
+    $header = [string]::Concat($header, $colName, $filler)
+    $index ++
   }
   return gum style $([string]::Concat("    ",$header)) --foreground $($Theme["brightYellow"])
 }

@@ -17,17 +17,18 @@ function Get-ProportionalLength {
   param(
     [int]$MaxLength
   )
-  $w = $Host.UI.RawUI.BufferSize.Width -6
+  $w = $Host.UI.RawUI.BufferSize.Width - 6
   return [math]::Floor($w / 100 * $MaxLength)
 }
 
 function TruncateString {
   param (
     [string]$InputString,
-    [int]$MaxLength
+    [int]$MaxLength,
+    [alignment]$Align = [alignment]::Left
   )
   $l = Get-FieldLength -buffer $InputString 
-  $w = $Host.UI.RawUI.BufferSize.Width -6
+  $w = $Host.UI.RawUI.BufferSize.Width - 6
   $Maxp = [math]::Floor($w / 100 * $MaxLength)
   if ($l -le $Maxp) {
     $pos = 0
@@ -39,11 +40,15 @@ function TruncateString {
       if ($nbchars -gt 1) {
         $offset += ($nbchars - 2)
       }
-      # $result += $nbchars
       $pos++
     }
     while ($pos -lt $Maxp - $offset) {
-      $TruncatedString += " "
+      switch ($Align) {
+        # TODO: #4 Add Center alignment
+        Left { $TruncatedString += " " }
+        Right { $TruncatedString = " " + $TruncatedString }
+        Default {}
+      }
       $pos++
     }
     return $TruncatedString

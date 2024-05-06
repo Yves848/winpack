@@ -1,7 +1,15 @@
-﻿class column {
+﻿enum alignment {
+  Left = 0
+  Right
+  Center
+}
+
+class column {
   [string]$FieldName
   [string]$Label
   [int]$Width #Percentage
+  [alignment]$Align = [alignment]::Left
+
 
   column(
     [string]$FieldName,
@@ -12,6 +20,20 @@
     $this.Label = $Label
     $this.Width = $Width
   }
+  
+  column(
+    [string]$FieldName,
+    [string]$Label,
+    [int]$Width,
+    [alignment]$Align
+  ) {
+    $this.FieldName = $FieldName
+    $this.Label = $Label
+    $this.Width = $Width
+    $this.Align = $Align
+  }
+
+  
 }
 
 class package {
