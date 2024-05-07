@@ -2,15 +2,9 @@
 Import-Module "$PSScriptRoot\classes.ps1" -Force
 Import-Module "$PSScriptRoot\tools.ps1" -Force
 
-[System.Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+. "$PSscriptRoot\GumEnv.ps1"
 
-# GUM dfault environment variables
-$env:GUM_FILTER_INDICATOR = "▶ "
-$env:GUM_FILTER_INDICATOR_FOREGROUND = $Theme["green"]
-$env:BORDER_FOREGROUND = $($Theme["purple"])
-$env:GUM_CHOOSE_SELECTED_BACKGROUND = $Theme["green"]
-$env:GUM_CHOOSE_SELECTED_FOREGROUND = $Theme["white"]
-$env:GUM_FILTER_CURSOR_TEXT_UNDERLINE = 1 #cursor-text.underline
+[System.Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
 $module = Get-InstalledModule -Name winpack -ErrorAction SilentlyContinue
 if (-not $module) {
