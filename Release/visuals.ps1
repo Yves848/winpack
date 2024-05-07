@@ -244,15 +244,16 @@ function makeLines {
     $item = $items[$index]
     [string]$temp = ""
     if ($item.IsUpdateAvailable) {
-      $temp =  [string]::Concat($temp, "↺ ")
-    } else {
-      $temp =  [string]::Concat($temp, "  ")
+      $temp = [string]::Concat($temp, "↺ ")
+    }
+    else {
+      $temp = [string]::Concat($temp, "  ")
     }
     $columns | ForEach-Object {
       $fieldname = $_.FieldName
       $width = [int32]$_.Width
       $buffer = TruncateString -InputString $([string]$item."$fieldname") -MaxLength $width -Align $_.Align
-      $temp = [string]::Concat($temp,[string]$buffer," ")
+      $temp = [string]::Concat($temp, [string]$buffer, " ")
     }
 
     $line = [string]::Concat($line, $temp)
@@ -281,14 +282,14 @@ function makeHeader {
     $Label = $_.Label
     switch ($_.Align) {
       # TODO: #4 Add Center alignment
-      Left { $colName = $Label.PadRight($w," ") }
-      Right { $colName = $Label.PadLeft($w," ") }
+      Left { $colName = $Label.PadRight($w, " ") }
+      Right { $colName = $Label.PadLeft($w, " ") }
       Default {}
     }
     $header = [string]::Concat($header, $colName, $filler)
     $index ++
   }
-  return gum style $([string]::Concat("    ",$header)) --foreground $($Theme["brightYellow"])
+  return gum style $([string]::Concat("    ", $header)) --foreground $($Theme["brightYellow"])
 }
 
 function makeTitle {
@@ -300,4 +301,13 @@ function makeTitle {
   $title = $title.PadLeft($w, " ")
   $title = $title.PadRight($width, " ")
   return gum style $title --foreground $($Theme["brightPurple"]) --background $($Theme["background"]) --bold --align "center"
+}
+
+function GumOutput {
+  param(
+    [string[]]$Text
+  )
+  $Text | ForEach-Object {
+    [System.Console]::WriteLine($_)
+  }
 }
