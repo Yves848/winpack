@@ -1,7 +1,7 @@
 ﻿enum alignment {
   Left = 0
   Right
-  Center
+  Center  # TODO : Implement
 }
 
 class column {
@@ -32,8 +32,6 @@ class column {
     $this.Width = $Width
     $this.Align = $Align
   }
-
-  
 }
 
 class package {
