@@ -7,7 +7,7 @@ function isGumInstalled {
 }
 
 function  isWingetCLIInstalled {
-  $CLI = Get-Module -Name Microsoft.WinGet.Client
+  $CLI = Get-Module -ListAvailable -Name Microsoft.WinGet.Client
   if ($CLI) {
     return $true
   } 
@@ -25,6 +25,6 @@ if (-not (isGumInstalled)) {
 }
 
 if (-not (isWingetCLIInstalled)) {
- Install-Module -Name Microsoft.Winget.Client -Force
+ Install-Module -Name Microsoft.Winget.Client -Force -Scope CurrentUser
  $env:path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
 }
