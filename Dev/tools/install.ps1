@@ -7,7 +7,7 @@ function isGumInstalled {
 }
 
 function  isWingetCLIInstalled {
-  $CLI = Get-Module -Name Microsoft.WinGet.Client
+  $CLI = Get-Module -ListAvailable -Name Microsoft.WinGet.Client
   if ($CLI) {
     return $true
   } 
