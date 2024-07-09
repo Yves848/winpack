@@ -1,0 +1,2 @@
+[Windows.UI.Notifications.ToastNotification, Windows.UI.Notifications, ContentType = WindowsRuntime] | Out-Null
+$toast = [Windows.UI.Notifications.ToastNotification]::new([Windows.Data.Xml.Dom.XmlDocument]::LoadXml('<toast><visual><binding template="ToastGeneric"><text>Test</text></binding></visual></toast>'))
