@@ -2,5 +2,8 @@
   "crosshair.enabled": true,
   "githubPullRequests.ignoredPullRequestBranches": [
     "master"
-  ]
+  ],
+  "editor.renderWhitespace": "all",
+  "editor.renderControlCharacters": true,
+  "editor.renderLineHighlight": "all"
 }
