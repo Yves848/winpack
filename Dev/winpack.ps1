@@ -267,10 +267,11 @@ function Find-WGPackage {
   }
   else {
     [System.Console]::setcursorposition(0, $Y)
-    $buffer = gum style "No query specified" --border "rounded" --width $width --foreground $($Theme["white"]) --border-foreground $($Theme["red"])
-    $buffer | ForEach-Object {
-      [System.Console]::write($_)
-    }
+    $buffer = [Style]::new("No query specified")
+    $buffer.SetBorder($true)
+    $buffer.SetColor([Colors]::White(),[Colors]::Red())
+    [Console]::Write($buffer.Render())
+    Start-Sleep -Seconds 2
     return $null
   }
   if ($packages) {
@@ -278,7 +279,7 @@ function Find-WGPackage {
     [column[]]$cols = @()
     $cols += [column]::new("Name", "Name", 35)
     $cols += [column]::new("Id", "Id", 35)
-    $cols += [column]::new("Available", "Version", 17, [Align]::Right)
+    $cols += [column]::new("Available", "Version", 17)
     $cols += [column]::new("Source", "Source", 10)
 
     [package[]]$InstalledPackages = @()
@@ -286,20 +287,25 @@ function Find-WGPackage {
       $InstalledPackages += [package]::new($_.Name, $_.Id, $_.AvailableVersions, $_.Source, $_.IsUpdateAvailable, $_.InstalledVersion)
     }
     [System.Collections.Generic.List[ListItem]]$choices = makeItems -columns $cols -items $InstalledPackages
-    $height = $Host.UI.RawUI.BufferSize.Height - 8
+    $height = $Host.UI.RawUI.BufferSize.Height - 9
     [System.Console]::setcursorposition(0, $Y)
     $title = makeTitle -title "Choose Packages to Install" -width $width
     $header = makeHeader -columns $cols
     $Spinner.Stop()
     Clear-Host
-    $title = [Style]::new("$title`n$header")
-    $title.SetBorder($true)
-    $title.SetColor([Colors]::BlueViolet())
-    $title.SetAlign([Align]::Center) 
-    [console]::write($title.Render())
-    [System.Console]::setcursorposition(0, ($Y+2))
+    $titre = [Style]::new("$title")
+    $titre.SetBorder($true)
+    $titre.SetColor([Colors]::BlueViolet(),$null)
+    $titre.SetAlign([Align]::Center) 
+    $headercolor = [color]::new([colors]::Aqua())
+    $headercolor.Style = [Styles]::Underline
+    [console]::writeline($titre.Render())
     $list = [List]::new($choices)
     $list.SetHeight($height)
+    # $list.SetBorder($true)
+    $list.setHeader($header)
+    $list.headerColor = $headercolor
+    # $list.SetLimit($true)
     $c = $list.Display()
     [package[]]$packages = @()
     if ($c) {
@@ -419,14 +425,14 @@ function Start-Winpack {
   
   while ($result -ne -1) {
     [Console]::setcursorposition(0, 0)
-    [Console]::Write($title.Render())
-    [Console]::setcursorposition(0, 4)
+    [Console]::Writeline($title.Render())
+    # [Console]::setcursorposition(0, 4)
     $items = [System.Collections.Generic.List[ListItem]]::new()
     $items.Add([ListItem]::new("Find Packages", 0, "🔎"))
     $items.Add([ListItem]::new("List Installed Packages", 1, "📃"))
     $items.Add([ListItem]::new("Install Packages", 2, "📦"))
     $items.Add([ListItem]::new("Update Packages", 3, "🌀"))
-    $items.Add([ListItem]::new("Uninstall Packages", 4, "🗑️"))
+    $items.Add([ListItem]::new("Uninstall Packages", 4, "🗑️",[Colors]::Red()))
     $items.Add([ListItem]::new("Build Script", 5, "📜"))
     $items.Add([ListItem]::new("Exit", 100, "❌"))
     
@@ -436,9 +442,9 @@ function Start-Winpack {
     
     $index = $list.Display()
     switch ($index.value) {
-      0 { Find-WGPackage }
+      0 { $null = Find-WGPackage -source "winget" }
       1 { Get-WGPackage }
-      2 { Find-WGPackage -install }
+      2 { $null = Find-WGPackage -install }
       3 { Get-WGPackage -update }
       4 { Get-WGPackage -uninstall }
       5 { Build-Script }
@@ -448,4 +454,5 @@ function Start-Winpack {
   }
 }
 
-Find-WGPackage -query "code" -source "winget"
+# Find-WGPackage -query "code" -source "winget"
+Start-Winpack

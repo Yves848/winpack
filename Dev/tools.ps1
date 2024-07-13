@@ -63,7 +63,7 @@ function Get-ProportionalLength {
   param(
     [int]$MaxLength
   )
-  $w = $Host.UI.RawUI.BufferSize.Width - 6
+  $w = ($Host.UI.RawUI.BufferSize.Width -6)
   return [math]::Floor($w / 100 * $MaxLength)
 }
 
