@@ -1,7 +1,8 @@
-﻿Import-Module "$PSScriptRoot\visuals.ps1" -Force
-Import-Module "$PSScriptRoot\classes.ps1" -Force
-Import-Module "$PSScriptRoot\tools.ps1" -Force
+﻿using module psCandy
 
+# . "$PSScriptRoot\visuals.ps1"
+. "$PSScriptRoot\classes.ps1"
+. "$PSScriptRoot\tools.ps1"
 . "$PSscriptRoot\GumEnv.ps1"
 
 [System.Console]::OutputEncoding = [System.Text.Encoding]::UTF8
@@ -14,7 +15,7 @@ else {
   $Script:version = $module.Version
 }
 
-
+# TODO: Add scoop support
 $sources = @{
   "winget" = "winget"
   "scoop"  = "scoop"
@@ -103,7 +104,6 @@ function ShowPackages {
   }
   $header = makeHeader -columns $cols
   
-  # $Spinner.Stop()
   [System.Console]::setcursorposition(0, $Y)
   $title = gum style --border "rounded" --width ($width) "$title`n$header" --border-foreground $($Theme["purple"])
   GumOutput -text $title
@@ -125,8 +125,7 @@ function ShowPackages {
     }
   }
   Clear-Host
-  # Return choosen packages without the "Available" property
-  return $packages #| Select-Object -Property * -ExcludeProperty Available
+  return $packages
 }
 
 function Get-WGPackage { 
@@ -150,9 +149,12 @@ function Get-WGPackage {
     $params = $params | Select-Object -Property * -ExcludeProperty source
     $packages = ShowPackages -InstalledPackages $packages @($params) 
   }
+  else {
+    return $null
+  }
 
   if ($uninstall -eq $true) {
-    uninstallPackages -packages $packages
+      uninstallPackages -packages $packages
   }
 
   if ($update -eq $true) {
@@ -273,7 +275,6 @@ function Find-WGPackage {
     return $null
   }
   if ($packages) {
-   
     [column[]]$cols = @()
     $cols += [column]::new("Name", "Name", 35)
     $cols += [column]::new("Id", "Id", 35)
@@ -316,21 +317,27 @@ function Build-Script {
     [switch]$preview = $false
   )
   $first = $true	
+  $result = gum style "Choose a script type :" --foreground $($Theme["brightGreen"]) --bold --border rounded --width ($Host.UI.RawUI.BufferSize.Width - 2) --align center
+  GumOutput -text $result
+  $types = @(
+    "Winget",
+    "Json"
+  )
+  $type = $types -join "`n" | gum choose
+  if (-not $type) {
+    return $null
+  }
+  $index = $types.IndexOf($type)
+  if ($first) {
+    $file = gum input --placeholder "Enter the name of the script (without extension)"
+    if (-not $file) {
+      return $null  
+    }
+  }
   $packages = RetrievePackages -source "winget"
   while ($true) {
     $Selectedpackages = ShowPackages -InstalledPackages $packages
-    if ($Selectedpackages) {
-      $result = gum style "Choose a script type :" --foreground $($Theme["brightGreen"]) --bold --border rounded --width ($Host.UI.RawUI.BufferSize.Width - 2) --align center
-      GumOutput -text $result
-      $types = @(
-        "Winget",
-        "Winpack"
-      )
-      $type = $types -join "`n" | gum choose
-      if ($first) {
-        $file = gum input --placeholder "Enter the name of the script (without extension)"
-      }
-      $index = $types.IndexOf($type)
+    if ($Selectedpackages) { 
       switch ($index) {
         0 { 
           $filename = "$file.ps1"
@@ -363,8 +370,6 @@ function Build-Script {
           }
           $first = $false
           Clear-Host
-          # $result = gum style "Script saved as $file.ps1" --foreground $($Theme["brightYellow"]) --bold --border rounded --width ($Host.UI.RawUI.BufferSize.Width - 2) --align center
-          # GumOutput -text $result
         }
         1 {  
           $filename = "$file.json"
@@ -397,7 +402,7 @@ function Build-Script {
     Clear-Host
     GumOutput -text $result
     if ($preview) {
-      Get-Content -Path $filename | gum pager --height ($Host.UI.RawUI.BufferSize.Height / 2) --width ($Host.UI.RawUI.BufferSize.Width % 2) --border "rounded"
+      Get-Content -Path $filename | gum pager --height ([Math]::Round($Host.UI.RawUI.BufferSize.Height / 2)) --border "rounded"
     }
   }
 }

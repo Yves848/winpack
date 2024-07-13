@@ -12,7 +12,7 @@
     RootModule        = 'winpack.psm1'
 
     # Version number of this module.
-    ModuleVersion     = '0.1.7'
+    ModuleVersion     = '0.2.1'
 
     # Supported PSEditions
     # CompatiblePSEditions = @()
@@ -51,7 +51,7 @@
     # ProcessorArchitecture = ''
 
     # Modules that must be imported into the global environment prior to importing this module
-    #RequiredModules = @('Microsoft.PowerShell.ConsoleGuiTools')
+    RequiredModules = @('psCandy')
 
     # Assemblies that must be loaded prior to importing this module
     # RequiredAssemblies = @()
@@ -104,7 +104,7 @@
         PSData = @{
 
             # Tags applied to this module. These help with module discovery in online galleries.
-            Tags         = @('winget', 'helper', 'powershell', 'TUI', 'Package', 'Manager')
+            Tags         = @('winget', 'helper', 'powershell', 'TUI', 'Package', 'Manager','psCandy')
 
             # A URL to the license for this module.
             LicenseUri   = 'https://github.com/Yves848/Winpack/blob/master/licence.txt'
