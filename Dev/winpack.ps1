@@ -90,42 +90,44 @@ function ShowPackages {
   $cols += [column]::new("InstalledVersion", "Version", 17, [Align]::Right)
   $cols += [column]::new("Source", "Source", 10)
   
-  $choices = makeLines -columns $cols -items $InstalledPackages
+  [System.Collections.Generic.List[ListItem]]$choices = makeItems -columns $cols -items $InstalledPackages
   $width = $Host.UI.RawUI.BufferSize.Width - 2
-  $height = $Host.UI.RawUI.BufferSize.Height - 7
+  $height = $Host.UI.RawUI.BufferSize.Height - 9
   if ($update) {
-    $title = makeTitle -title "List of Packages to Update" -width $width
+    $title = "List of Packages to Update"
   }
   elseif ($uninstall) {
-    $title = makeTitle -title "List of Packages to Uninstall" -width $width
+    $title = "List of Packages to Uninstall"
   }
   else {
-    $title = makeTitle -title "List of Installed Packages" -width $width
+    $title = "List of Installed Packages"
   }
   $header = makeHeader -columns $cols
   
   # $Spinner.Stop()
-  [System.Console]::setcursorposition(0, $Y)
-  $title = gum style --border "rounded" --width ($width) "$title`n$header" --border-foreground $($Theme["purple"])
-  GumOutput -text $title
-  
-  $c = $choices | gum filter  --no-limit  --height $height --placeholder "Search in the list" --prompt.foreground $($Theme["yellow"]) --prompt "🔎 "
-  $choices2 = @()
-    ($choices -split '\n') | ForEach-Object {
-    $temp = $_ -replace [char]27, "@"
-    if ($temp -match '@[\[][\d1,3;]*m') {
-      $temp = $temp -replace '@[\[][\d1,3;]*m', ""
+  [console]::clear()
+  $titre = [Style]::new($title)
+  $titre.SetBorder($true)
+  $titre.SetColor([Colors]::BlueViolet())
+  $titre.SetAlign([Align]::Center) 
+  $headercolor = [color]::new([colors]::Aqua())
+  $headercolor.Style = [Styles]::Underline
+  [console]::writeline($titre.Render())
+
+  $list = [List]::new($choices)
+    $list.SetHeight($height)
+    # $list.SetBorder($true)
+    $list.setHeader($header)
+    $list.headerColor = $headercolor
+    # $list.SetLimit($true)
+    $c = $list.Display()
+    [package[]]$packages = @()
+    if ($c) {
+      $c | ForEach-Object {
+        $packages += $_.Value
+      }
     }
-    $choices2 += $temp
-  }
-  $packages = @()
-  if ($c) {
-    $c | ForEach-Object {
-      $index = $choices2.IndexOf($_)
-      $packages += $InstalledPackages[$index] #| Select-Object -Property * -ExcludeProperty Available
-    }
-  }
-  Clear-Host
+    Clear-Host
   # Return choosen packages without the "Available" property
   return $packages #| Select-Object -Property * -ExcludeProperty Available
 }
@@ -289,13 +291,13 @@ function Find-WGPackage {
     [System.Collections.Generic.List[ListItem]]$choices = makeItems -columns $cols -items $InstalledPackages
     $height = $Host.UI.RawUI.BufferSize.Height - 9
     [System.Console]::setcursorposition(0, $Y)
-    $title = makeTitle -title "Choose Packages to Install" -width $width
+    # $title = makeTitle -title "Choose Packages to Install" -width $width
     $header = makeHeader -columns $cols
     $Spinner.Stop()
     Clear-Host
-    $titre = [Style]::new("$title")
+    $titre = [Style]::new("Choose Packages to Install")
     $titre.SetBorder($true)
-    $titre.SetColor([Colors]::BlueViolet(),$null)
+    $titre.SetColor([Colors]::BlueViolet())
     $titre.SetAlign([Align]::Center) 
     $headercolor = [color]::new([colors]::Aqua())
     $headercolor.Style = [Styles]::Underline

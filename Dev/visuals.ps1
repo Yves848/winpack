@@ -5,17 +5,15 @@ function makeItems {
     [column[]]$columns,
     [package[]]$items
   )
-
+  $icon = $null
   $index = 0
   [System.Collections.Generic.List[ListItem]]$result = [System.Collections.Generic.List[ListItem]]::new()
   while ($index -lt $items.Count) {
+    $icon = " "
     $item = $items[$index]
     [string]$temp = ""
     if ($item.IsUpdateAvailable) {
-      $temp = [string]::Concat($temp, "↺ ")
-    }
-    else {
-      $temp = [string]::Concat($temp, "  ")
+      $icon = "!"
     }
     $columns | ForEach-Object {
       $fieldname = $_.FieldName
@@ -24,8 +22,9 @@ function makeItems {
       $buffer = padRightUTF8 -text $([string]$item."$fieldname") -length $width
       $temp = [string]::Concat($temp, [string]$buffer, " ")
     }
-
-    $result.Add([ListItem]::new($temp, $item,[Colors]::Green()))
+    [ListItem]$li = [ListItem]::new($temp, $item,$icon,[Colors]::Green()) 
+    $li.IconColor = [Color]::New([Colors]::Orange())
+    $result.Add($li)
     $index ++
   }
   return $result
