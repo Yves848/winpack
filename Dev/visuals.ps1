@@ -1,4 +1,4 @@
-﻿using module psCandy
+﻿using module ..\..\psCandy\Classes\psCandy.psm1
 
 function makeLines {
   param(
@@ -41,7 +41,7 @@ function makeItems {
   )
 
   $index = 0
-  $result = [System.Collections.Generic.List[ListItem]]::new()
+  [System.Collections.Generic.List[ListItem]]$result = [System.Collections.Generic.List[ListItem]]::new()
   while ($index -lt $items.Count) {
     $item = $items[$index]
     [string]$temp = ""
@@ -54,7 +54,8 @@ function makeItems {
     $columns | ForEach-Object {
       $fieldname = $_.FieldName
       $width = [int32]$_.Width
-      $buffer = TruncateString -InputString $([string]$item."$fieldname") -MaxLength $width -Align $_.Align
+      # $buffer = TruncateString -InputString $([string]$item."$fieldname") -MaxLength $width -Align $_.Align
+      $buffer = padRightUTF8 -text $([string]$item."$fieldname") -length $width
       $temp = [string]::Concat($temp, [string]$buffer, " ")
     }
 

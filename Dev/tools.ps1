@@ -1,4 +1,4 @@
-using module psCandy
+using module ..\..\psCandy\Classes\psCandy.psm1
 function Get-FieldLength {
   param(
     [string]$buffer
@@ -12,6 +12,51 @@ function Get-FieldLength {
     $i += $l 
   }
   return $i
+}
+
+function padRightUTF8
+{
+  param(
+    [string]$text,
+    [int]$length
+  )
+  $bytecount = 0
+  $text.ToCharArray() | ForEach-Object {
+    $b = [Text.Encoding]::UTF8.Getbytecount($_)
+    if ($b -ge 2) {
+      $b = $b - 1
+    }
+    $bytecount += ($b) 
+  }
+
+  $totalbytes = [Text.Encoding]::UTF8.GetByteCount("".PadLeft($length," "))
+  $diff = $totalbytes - $bytecount
+  if ($diff -lt 0) {
+    $text.Substring(0, $length)  
+  } else {
+    [string]::Concat($text, "".PadLeft($diff," "))
+  }
+  
+}
+
+function padLeftUTF8
+{
+  param(
+    [string]$text,
+    [int]$length
+  )
+  $bytecount = 0
+  $text.ToCharArray() | ForEach-Object {
+    $b = [Text.Encoding]::UTF8.Getbytecount($_)
+    if ($b -ge 2) {
+      $b = $b - 1
+    }
+    $bytecount += ($b) 
+  }
+
+  $totalbytes = [Text.Encoding]::UTF8.GetByteCount("".PadLeft($length," "))
+  $diff = $totalbytes - $bytecount
+  [string]::Concat("".PadLeft($diff," "),$text)
 }
 
 function Get-ProportionalLength {

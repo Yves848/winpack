@@ -1,5 +1,4 @@
-﻿using module psCandy
-
+﻿using module ..\..\psCandy\Classes\psCandy.psm1
 Import-Module "$PSScriptRoot\visuals.ps1" -Force
 Import-Module "$PSScriptRoot\classes.ps1" -Force
 Import-Module "$PSScriptRoot\tools.ps1" -Force
@@ -286,8 +285,8 @@ function Find-WGPackage {
     $packages | ForEach-Object {
       $InstalledPackages += [package]::new($_.Name, $_.Id, $_.AvailableVersions, $_.Source, $_.IsUpdateAvailable, $_.InstalledVersion)
     }
-    $choices = makeItems -columns $cols -items $InstalledPackages
-    $height = $Host.UI.RawUI.BufferSize.Height - 7
+    [System.Collections.Generic.List[ListItem]]$choices = makeItems -columns $cols -items $InstalledPackages
+    $height = $Host.UI.RawUI.BufferSize.Height - 8
     [System.Console]::setcursorposition(0, $Y)
     $title = makeTitle -title "Choose Packages to Install" -width $width
     $header = makeHeader -columns $cols
@@ -299,15 +298,13 @@ function Find-WGPackage {
     $title.SetAlign([Align]::Center) 
     [console]::write($title.Render())
     [System.Console]::setcursorposition(0, ($Y+2))
-    # gum style --border "rounded" --width $width "$title`n$header" --border-foreground $($Theme["purple"]) 
-    # $c = $choices | gum filter  --no-limit  --height $height --placeholder "Search in the list" --prompt.foreground $($Theme["yellow"]) --prompt "🔎 "
     $list = [List]::new($choices)
+    $list.SetHeight($height)
     $c = $list.Display()
     [package[]]$packages = @()
     if ($c) {
       $c | ForEach-Object {
-        $index = ($choices -split '\n').IndexOf($_)
-        $packages += $InstalledPackages[$index]
+        $packages += $_.Value
       }
     }
     Clear-Host
@@ -451,4 +448,4 @@ function Start-Winpack {
   }
 }
 
-Find-WGPackage -query "cpu-z" -source "winget"
+Find-WGPackage -query "code" -source "winget"
