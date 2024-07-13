@@ -1,4 +1,5 @@
-﻿Import-Module "$PSScriptRoot\visuals.ps1" -Force
+﻿using module psCandy
+Import-Module "$PSScriptRoot\visuals.ps1" -Force
 Import-Module "$PSScriptRoot\classes.ps1" -Force
 Import-Module "$PSScriptRoot\tools.ps1" -Force
 
@@ -86,45 +87,47 @@ function ShowPackages {
   [column[]]$cols = @()
   $cols += [column]::new("Name", "Name", 35)
   $cols += [column]::new("Id", "Id", 35)
-  $cols += [column]::new("InstalledVersion", "Version", 17, [Alignment]::Right)
+  $cols += [column]::new("InstalledVersion", "Version", 17, [Align]::Right)
   $cols += [column]::new("Source", "Source", 10)
   
-  $choices = makeLines -columns $cols -items $InstalledPackages
+  [System.Collections.Generic.List[ListItem]]$choices = makeItems -columns $cols -items $InstalledPackages
   $width = $Host.UI.RawUI.BufferSize.Width - 2
-  $height = $Host.UI.RawUI.BufferSize.Height - 7
-  if ($update) {
-    $title = makeTitle -title "List of Packages to Update" -width $width
+  $height = $Host.UI.RawUI.BufferSize.Height - 9
+  if ($update -eq $true) {
+    $title = "List of Packages to Update"
   }
-  elseif ($uninstall) {
-    $title = makeTitle -title "List of Packages to Uninstall" -width $width
+  elseif ($uninstall -eq $true) {
+    $title = "List of Packages to Uninstall"
   }
   else {
-    $title = makeTitle -title "List of Installed Packages" -width $width
+    $title = "List of Installed Packages"
   }
   $header = makeHeader -columns $cols
   
   # $Spinner.Stop()
-  [System.Console]::setcursorposition(0, $Y)
-  $title = gum style --border "rounded" --width ($width) "$title`n$header" --border-foreground $($Theme["purple"])
-  GumOutput -text $title
-  
-  $c = $choices | gum filter  --no-limit  --height $height --placeholder "Search in the list" --prompt.foreground $($Theme["yellow"]) --prompt "🔎 "
-  $choices2 = @()
-    ($choices -split '\n') | ForEach-Object {
-    $temp = $_ -replace [char]27, "@"
-    if ($temp -match '@[\[][\d1,3;]*m') {
-      $temp = $temp -replace '@[\[][\d1,3;]*m', ""
+  [console]::clear()
+  $titre = [Style]::new($title)
+  $titre.SetBorder($true)
+  $titre.SetColor([Colors]::Coral())
+  $titre.SetAlign([Align]::Center) 
+  $headercolor = [color]::new([colors]::Aqua())
+  $headercolor.Style = [Styles]::Underline
+  [console]::writeline($titre.Render())
+
+  $list = [List]::new($choices)
+    $list.SetHeight($height)
+    # $list.SetBorder($true)
+    $list.setHeader($header)
+    $list.headerColor = $headercolor
+    # $list.SetLimit($true)
+    $c = $list.Display()
+    [package[]]$packages = @()
+    if ($c) {
+      $c | ForEach-Object {
+        $packages += $_.Value
+      }
     }
-    $choices2 += $temp
-  }
-  $packages = @()
-  if ($c) {
-    $c | ForEach-Object {
-      $index = $choices2.IndexOf($_)
-      $packages += $InstalledPackages[$index] #| Select-Object -Property * -ExcludeProperty Available
-    }
-  }
-  Clear-Host
+    Clear-Host
   # Return choosen packages without the "Available" property
   return $packages #| Select-Object -Property * -ExcludeProperty Available
 }
@@ -148,7 +151,7 @@ function Get-WGPackage {
   $packages = RetrievePackages @params
   if ($packages) {
     $params = $params | Select-Object -Property * -ExcludeProperty source
-    $packages = ShowPackages -InstalledPackages $packages @($params) 
+    $packages = ShowPackages -InstalledPackages $packages -update $update -uninstall $uninstall
   }
 
   if ($uninstall -eq $true) {
@@ -266,10 +269,11 @@ function Find-WGPackage {
   }
   else {
     [System.Console]::setcursorposition(0, $Y)
-    $buffer = gum style "No query specified" --border "rounded" --width $width --foreground $($Theme["white"]) --border-foreground $($Theme["red"])
-    $buffer | ForEach-Object {
-      [System.Console]::write($_)
-    }
+    $buffer = [Style]::new("No query specified")
+    $buffer.SetBorder($true)
+    $buffer.SetColor([Colors]::White(),[Colors]::Red())
+    [Console]::Write($buffer.Render())
+    Start-Sleep -Seconds 2
     return $null
   }
   if ($packages) {
@@ -277,27 +281,38 @@ function Find-WGPackage {
     [column[]]$cols = @()
     $cols += [column]::new("Name", "Name", 35)
     $cols += [column]::new("Id", "Id", 35)
-    $cols += [column]::new("Available", "Version", 17, [Alignment]::Right)
+    $cols += [column]::new("Available", "Version", 17)
     $cols += [column]::new("Source", "Source", 10)
 
     [package[]]$InstalledPackages = @()
     $packages | ForEach-Object {
       $InstalledPackages += [package]::new($_.Name, $_.Id, $_.AvailableVersions, $_.Source, $_.IsUpdateAvailable, $_.InstalledVersion)
     }
-    $choices = makeLines -columns $cols -items $InstalledPackages
-    $height = $Host.UI.RawUI.BufferSize.Height - 7
+    [System.Collections.Generic.List[ListItem]]$choices = makeItems -columns $cols -items $InstalledPackages
+    $height = $Host.UI.RawUI.BufferSize.Height - 9
     [System.Console]::setcursorposition(0, $Y)
-    $title = makeTitle -title "Choose Packages to Install" -width $width
+    # $title = makeTitle -title "Choose Packages to Install" -width $width
     $header = makeHeader -columns $cols
     $Spinner.Stop()
     Clear-Host
-    gum style --border "rounded" --width $width "$title`n$header" --border-foreground $($Theme["purple"]) 
-    $c = $choices | gum filter  --no-limit  --height $height --placeholder "Search in the list" --prompt.foreground $($Theme["yellow"]) --prompt "🔎 "
+    $titre = [Style]::new("Choose Packages to Install")
+    $titre.SetBorder($true)
+    $titre.SetColor([Colors]::BlueViolet())
+    $titre.SetAlign([Align]::Center) 
+    $headercolor = [color]::new([colors]::Aqua())
+    $headercolor.Style = [Styles]::Underline
+    [console]::writeline($titre.Render())
+    $list = [List]::new($choices)
+    $list.SetHeight($height)
+    # $list.SetBorder($true)
+    $list.setHeader($header)
+    $list.headerColor = $headercolor
+    # $list.SetLimit($true)
+    $c = $list.Display()
     [package[]]$packages = @()
     if ($c) {
       $c | ForEach-Object {
-        $index = ($choices -split '\n').IndexOf($_)
-        $packages += $InstalledPackages[$index]
+        $packages += $_.Value
       }
     }
     Clear-Host
@@ -405,28 +420,37 @@ function Build-Script {
 function Start-Winpack {
   Clear-Host
   $result = 0
+  $title = [Style]::new("Welcome to WinPack $($script:version)")
+  $title.SetColor([Colors]::Yellow())
+  $title.SetBorder($true)
+  $Title.setAlign([Align]::Center)
+  
   while ($result -ne -1) {
-    gum style "Welcome to WinPack $script:version" --foreground $($Theme["brightYellow"]) --bold --border rounded --width ($Host.UI.RawUI.BufferSize.Width - 2) --align center
-    $options = @(
-      "Find Packages",
-      "List Installed Packages",
-      "Install Packages",
-      "Update Packages",
-      "Uninstall Packages",
-      "Build Script",
-      "Exit"
-    )
-    $choice = $options -join "`n" | gum choose 
-    Clear-Host
-    $index = $options.IndexOf($choice)
-    switch ($index) {
-      0 { Find-WGPackage }
+    [Console]::setcursorposition(0, 0)
+    [Console]::Writeline($title.Render())
+    # [Console]::setcursorposition(0, 4)
+    $items = [System.Collections.Generic.List[ListItem]]::new()
+    $items.Add([ListItem]::new("Find Packages", 0, "🔎"))
+    $items.Add([ListItem]::new("List Installed Packages", 1, "📃"))
+    $items.Add([ListItem]::new("Install Packages", 2, "📦"))
+    $items.Add([ListItem]::new("Update Packages", 3, "🌀"))
+    $items.Add([ListItem]::new("Uninstall Packages", 4, "🗑️",[Colors]::Red()))
+    $items.Add([ListItem]::new("Build Script", 5, "📜"))
+    $items.Add([ListItem]::new("Exit", 100, "❌"))
+    
+
+    $list = [List]::new($items)  
+    $list.SetLimit($true)
+    
+    $index = $list.Display()
+    switch ($index.value) {
+      0 { $null = Find-WGPackage -source "winget" }
       1 { Get-WGPackage }
-      2 { Find-WGPackage -install }
+      2 { $null = Find-WGPackage -install }
       3 { Get-WGPackage -update }
       4 { Get-WGPackage -uninstall }
       5 { Build-Script }
-      6 { $result = -1 }
+      100 { $result = -1 }
       Default { $result = -1 }
     }
   }

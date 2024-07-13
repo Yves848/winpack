@@ -1,4 +1,4 @@
-﻿using module ..\..\psCandy\Classes\psCandy.psm1
+﻿using module psCandy
 Import-Module "$PSScriptRoot\visuals.ps1" -Force
 Import-Module "$PSScriptRoot\classes.ps1" -Force
 Import-Module "$PSScriptRoot\tools.ps1" -Force
@@ -455,6 +455,3 @@ function Start-Winpack {
     }
   }
 }
-
-# Find-WGPackage -query "code" -source "winget"
-Start-Winpack

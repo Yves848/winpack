@@ -1,4 +1,4 @@
-﻿using module ..\..\psCandy\Classes\psCandy.psm1
+﻿using module psCandy
 
 class column {
   [string]$FieldName
