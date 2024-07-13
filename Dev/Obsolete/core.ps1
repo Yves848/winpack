@@ -1,4 +1,6 @@
-﻿. "$PSScriptRoot\visuals.ps1"
+﻿using module psCandy
+
+# . "$PSScriptRoot\visuals.ps1"
 . "$PSScriptRoot\classes.ps1"
 . "$PSScriptRoot\tools.ps1"
 . "$PSscriptRoot\GumEnv.ps1"

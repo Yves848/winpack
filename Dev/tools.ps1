@@ -1,3 +1,4 @@
+using module psCandy
 function Get-FieldLength {
   param(
     [string]$buffer
@@ -25,7 +26,7 @@ function TruncateString {
   param (
     [string]$InputString,
     [int]$MaxLength,
-    [alignment]$Align = [alignment]::Left
+    [Align]$Align = [Align]::Left
   )
   $l = Get-FieldLength -buffer $InputString 
   $w = $Host.UI.RawUI.BufferSize.Width - 6
