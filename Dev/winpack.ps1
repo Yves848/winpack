@@ -93,10 +93,10 @@ function ShowPackages {
   [System.Collections.Generic.List[ListItem]]$choices = makeItems -columns $cols -items $InstalledPackages
   $width = $Host.UI.RawUI.BufferSize.Width - 2
   $height = $Host.UI.RawUI.BufferSize.Height - 9
-  if ($update) {
+  if ($update -eq $true) {
     $title = "List of Packages to Update"
   }
-  elseif ($uninstall) {
+  elseif ($uninstall -eq $true) {
     $title = "List of Packages to Uninstall"
   }
   else {
@@ -108,7 +108,7 @@ function ShowPackages {
   [console]::clear()
   $titre = [Style]::new($title)
   $titre.SetBorder($true)
-  $titre.SetColor([Colors]::BlueViolet())
+  $titre.SetColor([Colors]::Coral())
   $titre.SetAlign([Align]::Center) 
   $headercolor = [color]::new([colors]::Aqua())
   $headercolor.Style = [Styles]::Underline
@@ -151,7 +151,7 @@ function Get-WGPackage {
   $packages = RetrievePackages @params
   if ($packages) {
     $params = $params | Select-Object -Property * -ExcludeProperty source
-    $packages = ShowPackages -InstalledPackages $packages @($params) 
+    $packages = ShowPackages -InstalledPackages $packages -update $update -uninstall $uninstall
   }
 
   if ($uninstall -eq $true) {
