@@ -1,4 +1,4 @@
-﻿using module psCandy
+﻿using module C:\Users\yvesg\git\psCandy\Classes\psCandy.psm1
 Import-Module "$PSScriptRoot\visuals.ps1" -Force
 Import-Module "$PSScriptRoot\classes.ps1" -Force
 Import-Module "$PSScriptRoot\tools.ps1" -Force
@@ -84,15 +84,17 @@ function ShowPackages {
     [switch]$update = $false,
     [switch]$uninstall = $false
   )
+  $width = $Host.UI.RawUI.BufferSize.Width - 2
+  $height = $Host.UI.RawUI.BufferSize.Height - 9
   [column[]]$cols = @()
   $cols += [column]::new("Name", "Name", 35)
   $cols += [column]::new("Id", "Id", 35)
   $cols += [column]::new("InstalledVersion", "Version", 17, [Align]::Right)
   $cols += [column]::new("Source", "Source", 13)
   
+  makeExactColWidths -cols $cols -maxwidth $width
+
   [System.Collections.Generic.List[ListItem]]$choices = makeItems -columns $cols -items $InstalledPackages
-  $width = $Host.UI.RawUI.BufferSize.Width - 2
-  $height = $Host.UI.RawUI.BufferSize.Height - 9
   if ($update -eq $true) {
     $title = "List of Packages to Update"
   }
@@ -282,7 +284,9 @@ function Find-WGPackage {
     $cols += [column]::new("Name", "Name", 35)
     $cols += [column]::new("Id", "Id", 35)
     $cols += [column]::new("Available", "Version", 17)
-    $cols += [column]::new("Source", "Source", 10)
+    $cols += [column]::new("Source", "Source", 13)
+
+    makeExactColWidths -cols $cols -maxwidth $width
 
     [package[]]$InstalledPackages = @()
     $packages | ForEach-Object {
@@ -436,7 +440,7 @@ function Start-Winpack {
     $index = $list.Display()
     switch ($index.value) {
       0 { $null = Find-WGPackage -source "winget" }
-      1 { Get-WGPackage }
+      1 { Get-WGPackage -source "winget" }
       2 { $null = Find-WGPackage -install }
       3 { Get-WGPackage -update }
       4 { Get-WGPackage -uninstall }

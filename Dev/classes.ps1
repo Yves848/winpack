@@ -1,10 +1,11 @@
-﻿using module psCandy
+﻿using module C:\Users\yvesg\git\psCandy\Classes\psCandy.psm1
 
 class column {
   [string]$FieldName
   [string]$Label
   [int]$Width #Percentage
   [Align]$Align = [Align]::Left
+  [int]$ExactWidth = 0
 
 
   column(

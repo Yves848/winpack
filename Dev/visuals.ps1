@@ -1,4 +1,4 @@
-﻿using module D:\git\psCandy\Classes\psCandy.psm1
+﻿using module C:\Users\yvesg\git\psCandy\Classes\psCandy.psm1
 
 function makeItems {
   param(
@@ -17,18 +17,53 @@ function makeItems {
     }
     $columns | ForEach-Object {
       $fieldname = $_.FieldName
-      $width = [int32]$_.Width
+      $width = [int32]$_.ExactWidth
       # $buffer = TruncateString -InputString $([string]$item."$fieldname") -MaxLength $width -Align $_.Align
       # $buffer = padRightUTF8 -text $([string]$item."$fieldname") -length $width
-      $buffer = [candyString]::PadString($([string]$item."$fieldname"), $width," ", $_.Align)
+      $buffer = [candyString]::PadString($([string]$item."$fieldname"), $width, " ", $_.Align)
       $temp = [string]::Concat($temp, [string]$buffer, " ")
     }
-    [ListItem]$li = [ListItem]::new($temp, $item,$icon,[Colors]::Green()) 
+    [ListItem]$li = [ListItem]::new($temp, $item, $icon, [Colors]::Green()) 
     $li.IconColor = [Color]::New([Colors]::Orange())
     $result.Add($li)
     $index ++
   }
   return $result
+}
+
+function makeExactColWidths {
+  param(
+    [column[]]$cols,
+    [int]$maxwidth
+  )
+  $totalWidth = ($cols | Measure-Object -Property Width -Sum).Sum
+
+  # Calculate the percentage width for each column relative to $maxwidth and floor the values
+  $calculatedWidths = @{}
+  $cols | ForEach-Object {
+    $colWidthPercentage = $_.Width / $totalWidth
+    $calculatedWidth = [math]::Floor($maxwidth * $colWidthPercentage)
+    $calculatedWidths[$_.FieldName] = $calculatedWidth
+  }
+
+  # Calculate the sum of calculated widths
+  $sumCalculatedWidths = ($calculatedWidths.Values | Measure-Object -Sum).Sum
+
+  # Distribute the remaining width to columns
+  $remainingWidth = $maxwidth - $sumCalculatedWidths
+
+  # Sort columns by their initial widths to fairly distribute the remaining width
+  $sortedCols = $calculatedWidths.Keys | Sort-Object { $calculatedWidths[$_] }
+  for ($i = 0; $i -lt $remainingWidth; $i++) {
+    $colName = $sortedCols[$i % $sortedCols.Count]
+    $calculatedWidths[$colName] += 1
+  }
+
+  # Output the final widths
+  foreach ($col in $cols) {
+    $col.ExactWidth = $calculatedWidths[$col.FieldName]
+    # Write-Output "Column: $($col.FieldName), Exact Width: $($col.ExactWidth)"
+  }
 }
 
 function makeHeader {
@@ -40,9 +75,10 @@ function makeHeader {
    
   $columns | ForEach-Object {
     $fieldname = $_.FieldName
-    $width = [int32]$_.Width
+    $width = [int32]$_.ExactWidth -1
     # $buffer = TruncateString -InputString $([string]$item."$fieldname") -MaxLength $width -Align $_.Align
-    $buffer = padRightUTF8 -text $fieldname -length $width
+    # $buffer = padRightUTF8 -text $fieldname -length $width
+    $buffer = [candyString]::PadString($fieldname, $width, " ", $_.Align)
     $temp = [string]::Concat($temp, [string]$buffer, " ")
   }
   
