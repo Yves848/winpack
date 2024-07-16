@@ -1,4 +1,4 @@
-﻿using module psCandy
+﻿using module D:\git\psCandy\Classes\psCandy.psm1
 
 function makeItems {
   param(
@@ -19,7 +19,8 @@ function makeItems {
       $fieldname = $_.FieldName
       $width = [int32]$_.Width
       # $buffer = TruncateString -InputString $([string]$item."$fieldname") -MaxLength $width -Align $_.Align
-      $buffer = padRightUTF8 -text $([string]$item."$fieldname") -length $width
+      # $buffer = padRightUTF8 -text $([string]$item."$fieldname") -length $width
+      $buffer = [candyString]::PadString($([string]$item."$fieldname"), $width," ", $_.Align)
       $temp = [string]::Concat($temp, [string]$buffer, " ")
     }
     [ListItem]$li = [ListItem]::new($temp, $item,$icon,[Colors]::Green()) 
