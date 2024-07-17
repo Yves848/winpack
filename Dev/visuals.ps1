@@ -68,20 +68,22 @@ function makeExactColWidths {
 
 function makeHeader {
   param(
-    [column[]]$columns
+    [column[]]$columns,
+    [int]$width
   )
   $index = 0
   [string]$temp = ""
    
   $columns | ForEach-Object {
     $fieldname = $_.FieldName
-    $width = [int32]$_.ExactWidth -1
+    $w = [int32]$_.ExactWidth 
     # $buffer = TruncateString -InputString $([string]$item."$fieldname") -MaxLength $width -Align $_.Align
     # $buffer = padRightUTF8 -text $fieldname -length $width
-    $buffer = [candyString]::PadString($fieldname, $width, " ", $_.Align)
+    $buffer = [candyString]::PadString($fieldname, $w, " ", $_.Align)
     $temp = [string]::Concat($temp, [string]$buffer, " ")
   }
   
+  # return $temp.Substring(0, $width)
   return $temp
 }
 

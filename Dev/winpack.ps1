@@ -104,7 +104,7 @@ function ShowPackages {
   else {
     $title = "List of Installed Packages"
   }
-  $header = makeHeader -columns $cols
+  $header = makeHeader -columns $cols -width $width
   
   # $Spinner.Stop()
   [console]::clear()
@@ -283,7 +283,7 @@ function Find-WGPackage {
     [column[]]$cols = @()
     $cols += [column]::new("Name", "Name", 35)
     $cols += [column]::new("Id", "Id", 35)
-    $cols += [column]::new("Available", "Version", 17)
+    $cols += [column]::new("Available", "Version", 17, [Align]::Right)
     $cols += [column]::new("Source", "Source", 13)
 
     makeExactColWidths -cols $cols -maxwidth $width
@@ -295,7 +295,7 @@ function Find-WGPackage {
     [System.Collections.Generic.List[ListItem]]$choices = makeItems -columns $cols -items $InstalledPackages
     $height = $Host.UI.RawUI.BufferSize.Height - 9
     [System.Console]::setcursorposition(0, $Y)
-    $header = makeHeader -columns $cols
+    $header = makeHeader -columns $cols -width $width
     $Spinner.Stop()
     Clear-Host
     $headercolor = [color]::new([colors]::Aqua())
