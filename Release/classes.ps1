@@ -5,6 +5,7 @@ class column {
   [string]$Label
   [int]$Width #Percentage
   [Align]$Align = [Align]::Left
+  [int]$ExactWidth = 0
 
 
   column(

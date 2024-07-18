@@ -1,4 +1,4 @@
-﻿using module C:\Users\yvesg\git\psCandy\Classes\psCandy.psm1
+﻿using module psCandy
 Import-Module "$PSScriptRoot\visuals.ps1" -Force
 Import-Module "$PSScriptRoot\classes.ps1" -Force
 Import-Module "$PSScriptRoot\tools.ps1" -Force

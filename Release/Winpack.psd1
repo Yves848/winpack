@@ -12,7 +12,7 @@
     RootModule        = 'winpack.psm1'
 
     # Version number of this module.
-    ModuleVersion     = '0.2.1'
+    ModuleVersion     = '0.2.4'
 
     # Supported PSEditions
     # CompatiblePSEditions = @()

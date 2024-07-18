@@ -1,4 +1,4 @@
-using module C:\Users\yvesg\git\psCandy\Classes\psCandy.psm1
+using module psCandy
 function Get-FieldLength {
   param(
     [string]$buffer
