@@ -275,7 +275,7 @@ function Find-WGPackage {
     $buffer.SetBorder($true)
     $buffer.SetColor([Colors]::White(),[Colors]::Red())
     [Console]::Write($buffer.Render())
-    Start-Sleep -Seconds 2
+    Start-Sleep -Seconds 1
     return $null
   }
   if ($packages) {
