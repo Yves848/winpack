@@ -81,8 +81,8 @@ function RetrievePackages {
 function ShowPackages {
   param(
     [package[]]$InstalledPackages,
-    [switch]$update = $false,
-    [switch]$uninstall = $false
+    [bool]$update = $false,
+    [bool]$uninstall = $false
   )
   $width = $Host.UI.RawUI.BufferSize.Width - 2
   $height = $Host.UI.RawUI.BufferSize.Height - 9

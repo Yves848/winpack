@@ -51,10 +51,12 @@ Winpack is a TUI for the Winget CLI.
 It uses charmbracelet/gum to render the output in the terminal.
 
 Dependencies :
-- charmbracelet-gum (0.13.0)
 - Winget-Cli  
+- psCandy
+- charmbracelet-gum (0.13.0) 
 
 *Remark*: If it's not already installed, the module will install ***Gum 0.13.0*** .  Starting with 0.14.0, there are some minor differences of usage.  Although this is not unusable, 0.13.0 is, for now, better suited to this module.
+Although Gum is great, is has some limitations so I started a new module, psCandy, that will progressively replace Gum.
 
 **These two dependencies are automatically installed if they're not found when the module loads.** 
 *** 

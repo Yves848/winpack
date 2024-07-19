@@ -1,4 +1,4 @@
-﻿using module C:\Users\yvesg\git\psCandy\Classes\psCandy.psm1
+﻿using module psCandy
 Import-Module "$PSScriptRoot\visuals.ps1" -Force
 Import-Module "$PSScriptRoot\classes.ps1" -Force
 Import-Module "$PSScriptRoot\tools.ps1" -Force
@@ -81,8 +81,8 @@ function RetrievePackages {
 function ShowPackages {
   param(
     [package[]]$InstalledPackages,
-    [switch]$update = $false,
-    [switch]$uninstall = $false
+    [bool]$update = $false,
+    [bool]$uninstall = $false
   )
   $width = $Host.UI.RawUI.BufferSize.Width - 2
   $height = $Host.UI.RawUI.BufferSize.Height - 9
