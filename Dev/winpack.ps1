@@ -429,7 +429,7 @@ function Start-Winpack {
     $items.Add([ListItem]::new("List Installed Packages", 1, "📃"))
     $items.Add([ListItem]::new("Install Packages", 2, "📦"))
     $items.Add([ListItem]::new("Update Packages", 3, "🌀"))
-    $items.Add([ListItem]::new("Uninstall Packages", 4, "🗑️",[Colors]::Red()))
+    $items.Add([ListItem]::new("<Red>Uninstall Packages</Red>", 4, "🗑️"))
     $items.Add([ListItem]::new("Build Script", 5, "📜"))
     $items.Add([ListItem]::new("Exit", 100, "❌"))
     

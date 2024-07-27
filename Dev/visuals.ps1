@@ -23,7 +23,7 @@ function makeItems {
       $buffer = [candyString]::PadString($([string]$item."$fieldname"), $width, " ", $_.Align)
       $temp = [string]::Concat($temp, [string]$buffer, " ")
     }
-    [ListItem]$li = [ListItem]::new($temp, $item, $icon, [Colors]::Green()) 
+    [ListItem]$li = [ListItem]::new($temp, $item, $icon) 
     $li.IconColor = [Color]::New([Colors]::Orange())
     $result.Add($li)
     $index ++
