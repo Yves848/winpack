@@ -1,4 +1,5 @@
-﻿using module psCandy
+﻿# using module psCandy
+Import-Module C:\Users\yvesg\git\psCandy\Classes\psCandy.psm1
 
 function makeItems {
   param(
@@ -13,7 +14,7 @@ function makeItems {
     $item = $items[$index]
     [string]$temp = ""
     if ($item.IsUpdateAvailable) {
-      $icon = "↺"
+      $icon = "<Orange>↺</Orange>"
     }
     $columns | ForEach-Object {
       $fieldname = $_.FieldName
@@ -24,7 +25,7 @@ function makeItems {
       $temp = [string]::Concat($temp, [string]$buffer, " ")
     }
     [ListItem]$li = [ListItem]::new($temp, $item, $icon) 
-    $li.IconColor = [Color]::New([Colors]::Orange())
+    # $li.IconColor = [Color]::New([Colors]::Orange())
     $result.Add($li)
     $index ++
   }

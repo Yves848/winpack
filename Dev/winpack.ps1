@@ -1,4 +1,5 @@
-﻿using module psCandy
+﻿# using module psCandy
+Import-Module C:\Users\yvesg\git\psCandy\Classes\psCandy.psm1
 Import-Module "$PSScriptRoot\visuals.ps1" -Force
 Import-Module "$PSScriptRoot\classes.ps1" -Force
 Import-Module "$PSScriptRoot\tools.ps1" -Force
@@ -112,14 +113,12 @@ function ShowPackages {
   $titre.SetBorder($true)
   $titre.SetColor([Colors]::Coral())
   $titre.SetAlign([Align]::Center) 
-  $headercolor = [color]::new([colors]::Aqua())
-  $headercolor.Style = [Styles]::Underline
   [console]::writeline($titre.Render())
 
   $list = [List]::new($choices)
     $list.SetHeight($height)
     # $list.SetBorder($true)
-    $list.setHeader($header)
+    $list.setHeader("<Aqua>$header</Aqua>")
     $list.headerColor = $headercolor
     # $list.SetLimit($true)
     $c = $list.Display()
