@@ -85,13 +85,13 @@ function ShowPackages {
     [bool]$update = $false,
     [bool]$uninstall = $false
   )
-  $width = $Host.UI.RawUI.BufferSize.Width - 2
+  $width = $Host.UI.RawUI.BufferSize.Width - 5
   $height = $Host.UI.RawUI.BufferSize.Height - 9
   [column[]]$cols = @()
   $cols += [column]::new("Name", "Name", 35)
   $cols += [column]::new("Id", "Id", 35)
-  $cols += [column]::new("InstalledVersion", "Version", 17, [Align]::Right)
-  $cols += [column]::new("Source", "Source", 13)
+  $cols += [column]::new("InstalledVersion", "Version", 15, [Align]::Right)
+  $cols += [column]::new("Source", "Source", 15)
   
   makeExactColWidths -cols $cols -maxwidth $width
 
@@ -105,7 +105,7 @@ function ShowPackages {
   else {
     $title = "List of Installed Packages"
   }
-  $header = makeHeader -columns $cols -width $width
+  $header = makeHeader -columns $cols -width ($width-5)
   
   # $Spinner.Stop()
   [console]::clear()
@@ -119,7 +119,7 @@ function ShowPackages {
     $list.SetHeight($height)
     # $list.SetBorder($true)
     $list.setHeader("<Aqua>$header</Aqua>")
-    $list.headerColor = $headercolor
+    # $list.headerColor = $headercolor
     # $list.SetLimit($true)
     $c = $list.Display()
     [package[]]$packages = @()

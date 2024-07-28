@@ -6,7 +6,6 @@ function makeItems {
     [column[]]$columns,
     [package[]]$items
   )
-  $icon = $null
   $index = 0
   [System.Collections.Generic.List[ListItem]]$result = [System.Collections.Generic.List[ListItem]]::new()
   while ($index -lt $items.Count) {
@@ -16,16 +15,19 @@ function makeItems {
     if ($item.IsUpdateAvailable) {
       $icon = "<Orange>↺</Orange>"
     }
+    $i = 0
     $columns | ForEach-Object {
       $fieldname = $_.FieldName
       $width = [int32]$_.ExactWidth
-      # $buffer = TruncateString -InputString $([string]$item."$fieldname") -MaxLength $width -Align $_.Align
-      # $buffer = padRightUTF8 -text $([string]$item."$fieldname") -length $width
       $buffer = [candyString]::PadString($([string]$item."$fieldname"), $width, " ", $_.Align)
-      $temp = [string]::Concat($temp, [string]$buffer, " ")
+
+      $temp = [string]::Concat($temp, [string]$buffer)
+      if ($i -lt $columns.Count - 1) {
+        $temp = [string]::Concat($temp, " ")
+      }
+      $i++
     }
     [ListItem]$li = [ListItem]::new($temp, $item, $icon) 
-    # $li.IconColor = [Color]::New([Colors]::Orange())
     $result.Add($li)
     $index ++
   }
@@ -80,7 +82,7 @@ function makeHeader {
     $buffer = [candyString]::PadString($fieldname, $w, " ", $_.Align)
     $temp = [string]::Concat($temp, [string]$buffer, " ")
   }
-  return $temp
+  return $temp.Substring(0, $width)
 }
 
 function makeTitle {
