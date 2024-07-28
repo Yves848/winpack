@@ -436,7 +436,7 @@ function Start-Winpack {
 
     $list = [List]::new($items)  
     $list.SetLimit($true)
-    $list.SetWidth($width)
+    # $list.SetWidth($width)
     $index = $list.Display()
     switch ($index.value) {
       0 { $null = Find-WGPackage -source "winget" }
