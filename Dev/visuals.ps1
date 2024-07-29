@@ -1,6 +1,24 @@
 ﻿# using module psCandy
-Import-Module C:\Users\yvesg\git\psCandy\Classes\psCandy.psm1
+# Import-Module pscandy
 
+function makeHeader {
+  param(
+    [column[]]$columns,
+    [int]$width
+  )
+  [string]$temp = ""
+  $i = 0
+  $columns | ForEach-Object {
+    $fieldname = $_.FieldName
+    $w = [int]$_.ExactWidth -1 
+    $buffer = [candyString]::PadString($fieldname, $w, " ", $_.Align)
+    $temp = [string]::Concat($temp, [string]$buffer)
+    if ($i -lt $columns.Count - 1) {
+      $temp = [string]::Concat($temp, " ")
+    }
+  }
+  return $temp
+}
 function makeItems {
   param(
     [column[]]$columns,
@@ -13,12 +31,12 @@ function makeItems {
     $item = $items[$index]
     [string]$temp = ""
     if ($item.IsUpdateAvailable) {
-      $icon = "<Orange>↺</Orange>"
+      # $icon = "↺"
     }
     $i = 0
     $columns | ForEach-Object {
       $fieldname = $_.FieldName
-      $width = [int32]$_.ExactWidth
+      $width = [int]$_.ExactWidth -1
       $buffer = [candyString]::PadString($([string]$item."$fieldname"), $width, " ", $_.Align)
 
       $temp = [string]::Concat($temp, [string]$buffer)
@@ -69,21 +87,6 @@ function makeExactColWidths {
   }
 }
 
-function makeHeader {
-  param(
-    [column[]]$columns,
-    [int]$width
-  )
-  [string]$temp = ""
-   
-  $columns | ForEach-Object {
-    $fieldname = $_.FieldName
-    $w = [int32]$_.ExactWidth 
-    $buffer = [candyString]::PadString($fieldname, $w, " ", $_.Align)
-    $temp = [string]::Concat($temp, [string]$buffer, " ")
-  }
-  return $temp.Substring(0, $width)
-}
 
 function makeTitle {
   param(

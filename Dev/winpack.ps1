@@ -1,8 +1,9 @@
 ﻿# using module psCandy
-Import-Module C:\Users\yvesg\git\psCandy\Classes\psCandy.psm1
+# Import-Module C:\Users\yvesg\git\psCandy\Classes\psCandy.psm1
+Import-Module pscandy
 Import-Module "$PSScriptRoot\visuals.ps1" -Force
 Import-Module "$PSScriptRoot\classes.ps1" -Force
-Import-Module "$PSScriptRoot\tools.ps1" -Force
+# Import-Module "$PSScriptRoot\tools.ps1" -Force
 
 . "$PSscriptRoot\GumEnv.ps1"
 
@@ -85,13 +86,13 @@ function ShowPackages {
     [bool]$update = $false,
     [bool]$uninstall = $false
   )
-  $width = $Host.UI.RawUI.BufferSize.Width - 5
+  $width = ($Host.UI.RawUI.BufferSize.Width - 7)
   $height = $Host.UI.RawUI.BufferSize.Height - 9
   [column[]]$cols = @()
-  $cols += [column]::new("Name", "Name", 35)
-  $cols += [column]::new("Id", "Id", 35)
-  $cols += [column]::new("InstalledVersion", "Version", 15, [Align]::Right)
-  $cols += [column]::new("Source", "Source", 15)
+  $cols += [column]::new("Name", "Name", 40)
+  $cols += [column]::new("Id", "Id", 40)
+  $cols += [column]::new("InstalledVersion", "Version", 12, [Align]::Right)
+  $cols += [column]::new("Source", "Source", 8, [Align]::Right)
   
   makeExactColWidths -cols $cols -maxwidth $width
 
@@ -105,30 +106,26 @@ function ShowPackages {
   else {
     $title = "List of Installed Packages"
   }
-  $header = makeHeader -columns $cols -width ($width-5)
+  $header = makeHeader -columns $cols -width ($width)
   
   # $Spinner.Stop()
   [console]::clear()
-  $titre = [Style]::new($title)
-  $titre.SetBorder($true)
-  $titre.SetColor([Colors]::Coral())
-  $titre.SetAlign([Align]::Center) 
-  [console]::writeline($titre.Render())
+  Write-Candy -Text "<Coral>$($title)</Coral>" -Border "rounded" -fullscreen -Align Center
 
   $list = [List]::new($choices)
-    $list.SetHeight($height)
-    # $list.SetBorder($true)
-    $list.setHeader("<Aqua>$header</Aqua>")
-    # $list.headerColor = $headercolor
-    # $list.SetLimit($true)
-    $c = $list.Display()
-    [package[]]$packages = @()
-    if ($c) {
-      $c | ForEach-Object {
-        $packages += $_.Value
-      }
+  $list.SetHeight($height)
+  # $list.SetBorder($true)
+  $list.setHeader("<Aqua>$header</Aqua>")
+  # $list.headerColor = $headercolor
+  # $list.SetLimit($true)
+  $c = $list.Display()
+  [package[]]$packages = @()
+  if ($c) {
+    $c | ForEach-Object {
+      $packages += $_.Value
     }
-    Clear-Host
+  }
+  Clear-Host
   # Return choosen packages without the "Available" property
   return $packages #| Select-Object -Property * -ExcludeProperty Available
 }
@@ -272,7 +269,7 @@ function Find-WGPackage {
     [System.Console]::setcursorposition(0, $Y)
     $buffer = [Style]::new("No query specified")
     $buffer.SetBorder($true)
-    $buffer.SetColor([Colors]::White(),[Colors]::Red())
+    $buffer.SetColor([Colors]::White(), [Colors]::Red())
     [Console]::Write($buffer.Render())
     Start-Sleep -Seconds 1
     return $null
@@ -300,7 +297,7 @@ function Find-WGPackage {
     $headercolor = [color]::new([colors]::Aqua())
     $headercolor.Style = [Styles]::Underline
     
-    write-candy -text "<CornflowerBlue>Choose Packages to Install</CornflowerBlue>" -Border "rounded" -Width $width -Align Center
+    Write-Candy -Text "<CornflowerBlue>Choose Packages to Install</CornflowerBlue>" -Border "rounded" -Width $width -Align Center
     $list = [List]::new($choices)
     $list.SetHeight($height)
     # $list.SetBorder($true)
@@ -421,7 +418,7 @@ function Start-Winpack {
   $width = $Host.UI.RawUI.BufferSize.Width - 2
   while ($result -ne -1) {
     [Console]::setcursorposition(0, 0)
-    write-candy -Text "<Yellow>Welcome to Winpack</Yellow> <CornflowerBlue><Italic>$($script:version)</Italic></CornflowerBlue>" -Border "rounded" -Width $width -Align Center
+    Write-Candy -Text "<Yellow>Welcome to Winpack</Yellow> <CornflowerBlue><Italic>$($script:version)</Italic></CornflowerBlue>" -Border "rounded" -fullscreen -Align Center
     
     $items = [System.Collections.Generic.List[ListItem]]::new()
     $items.Add([ListItem]::new("Find Packages", 0, "🔎"))
