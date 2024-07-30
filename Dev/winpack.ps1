@@ -1,6 +1,6 @@
 ﻿# using module psCandy
-# Import-Module C:\Users\yvesg\git\psCandy\Classes\psCandy.psm1
-Import-Module pscandy
+Import-Module C:\Users\yvesg\git\psCandy\Classes\psCandy.psm1
+# Import-Module pscandy
 Import-Module "$PSScriptRoot\visuals.ps1" -Force
 Import-Module "$PSScriptRoot\classes.ps1" -Force
 # Import-Module "$PSScriptRoot\tools.ps1" -Force
@@ -86,8 +86,8 @@ function ShowPackages {
     [bool]$update = $false,
     [bool]$uninstall = $false
   )
-  $width = ($Host.UI.RawUI.BufferSize.Width - 7)
-  $height = $Host.UI.RawUI.BufferSize.Height - 9
+  $width = ($Host.UI.RawUI.BufferSize.Width - 9)
+  $height = ($Host.UI.RawUI.BufferSize.Height - 9)
   [column[]]$cols = @()
   $cols += [column]::new("Name", "Name", 40)
   $cols += [column]::new("Id", "Id", 40)
@@ -108,16 +108,12 @@ function ShowPackages {
   }
   $header = makeHeader -columns $cols -width ($width)
   
-  # $Spinner.Stop()
   [console]::clear()
   Write-Candy -Text "<Coral>$($title)</Coral>" -Border "rounded" -fullscreen -Align Center
-
   $list = [List]::new($choices)
   $list.SetHeight($height)
   # $list.SetBorder($true)
   $list.setHeader("<Aqua>$header</Aqua>")
-  # $list.headerColor = $headercolor
-  # $list.SetLimit($true)
   $c = $list.Display()
   [package[]]$packages = @()
   if ($c) {
@@ -126,7 +122,6 @@ function ShowPackages {
     }
   }
   Clear-Host
-  # Return choosen packages without the "Available" property
   return $packages #| Select-Object -Property * -ExcludeProperty Available
 }
 
@@ -226,26 +221,24 @@ function Find-WGPackage {
   [Spinner]$Spinner
   $SearchParams = @{}
   $Y = $host.ui.rawui.CursorPosition.Y 
-  $width = $Host.UI.RawUI.BufferSize.Width - 2
+  $width = $Host.UI.RawUI.BufferSize.Width - 8
   
   if (-not $query -or $null -eq $query) {
-    $buffer = gum style "Enter search query" --border "rounded" --width $width
-    $buffer | ForEach-Object {
-      [System.Console]::write($_)
-    }
+    write-candy "<33>Enter a query to search for a package</33>" -border "rounded" -fullscreen  -align center
+    
     $query = gum input --placeholder "Search for a package" 
     $SearchParams.Add("query", $query)
   }
 
   if ($source) {
     $SearchParams.Add("source", $source)
+    $source = build-candy "<I><DodgerBlue>$source</DodgerBlue></I>"
   }
   else {
-    $source = gum style "every sources" --foreground "#FF0000"
+    $source = build-candy "<I><Red>every sources</Red></I>" 
   }
 
   if ($query) {
-    # $title = gum style $query --foreground "#00FF00" --bold
     $Spinner = [Spinner]::new("Dots")
     
     $queries = $query.Split(",")
@@ -277,10 +270,10 @@ function Find-WGPackage {
   if ($packages) {
    
     [column[]]$cols = @()
-    $cols += [column]::new("Name", "Name", 35)
-    $cols += [column]::new("Id", "Id", 35)
-    $cols += [column]::new("Available", "Version", 17, [Align]::Right)
-    $cols += [column]::new("Source", "Source", 13)
+    $cols += [column]::new("Name", "Name", 40)
+    $cols += [column]::new("Id", "Id", 40)
+    $cols += [column]::new("Available", "Version", 12, [Align]::Right)
+    $cols += [column]::new("Source", "Source", 8, [Align]::Right)
 
     makeExactColWidths -cols $cols -maxwidth $width
 
@@ -289,19 +282,14 @@ function Find-WGPackage {
       $InstalledPackages += [package]::new($_.Name, $_.Id, $_.AvailableVersions, $_.Source, $_.IsUpdateAvailable, $_.InstalledVersion)
     }
     [System.Collections.Generic.List[ListItem]]$choices = makeItems -columns $cols -items $InstalledPackages
-    $height = $Host.UI.RawUI.BufferSize.Height - 9
+    # $height = $Host.UI.RawUI.BufferSize.Height - 9
     [System.Console]::setcursorposition(0, $Y)
     $header = makeHeader -columns $cols -width $width
     $Spinner.Stop()
     Clear-Host
-    $headercolor = [color]::new([colors]::Aqua())
-    $headercolor.Style = [Styles]::Underline
-    
     Write-Candy -Text "<CornflowerBlue>Choose Packages to Install</CornflowerBlue>" -Border "rounded" -Width $width -Align Center
     $list = [List]::new($choices)
-    $list.SetHeight($height)
-    # $list.SetBorder($true)
-    $list.setHeader($header)
+    $list.setHeader("<Aqua>$($header)</Aqua>")
     $list.headerColor = $headercolor
     $c = $list.Display()
     [package[]]$packages = @()

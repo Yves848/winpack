@@ -9,7 +9,7 @@ function makeHeader {
   [string]$temp = ""
   $i = 0
   $columns | ForEach-Object {
-    $fieldname = $_.FieldName
+    $fieldname = $_.Label
     $w = [int]$_.ExactWidth -1 
     $buffer = [candyString]::PadString($fieldname, $w, " ", $_.Align)
     $temp = [string]::Concat($temp, [string]$buffer)
@@ -27,11 +27,11 @@ function makeItems {
   $index = 0
   [System.Collections.Generic.List[ListItem]]$result = [System.Collections.Generic.List[ListItem]]::new()
   while ($index -lt $items.Count) {
-    $icon = " "
+    $icon = ""
     $item = $items[$index]
     [string]$temp = ""
     if ($item.IsUpdateAvailable) {
-      # $icon = "↺"
+      $icon = "↺ "
     }
     $i = 0
     $columns | ForEach-Object {
