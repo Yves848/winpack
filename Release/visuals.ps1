@@ -1,30 +1,51 @@
-﻿using module psCandy
+﻿# using module psCandy
+# Import-Module pscandy
 
+function makeHeader {
+  param(
+    [column[]]$columns,
+    [int]$width
+  )
+  [string]$temp = ""
+  $i = 0
+  $columns | ForEach-Object {
+    $fieldname = $_.Label
+    $w = [int]$_.ExactWidth -1 
+    $buffer = [candyString]::PadString($fieldname, $w, " ", $_.Align)
+    $temp = [string]::Concat($temp, [string]$buffer)
+    if ($i -lt $columns.Count - 1) {
+      $temp = [string]::Concat($temp, " ")
+    }
+  }
+  return $temp
+}
 function makeItems {
   param(
     [column[]]$columns,
     [package[]]$items
   )
-  $icon = $null
   $index = 0
   [System.Collections.Generic.List[ListItem]]$result = [System.Collections.Generic.List[ListItem]]::new()
   while ($index -lt $items.Count) {
-    $icon = " "
+    $icon = ""
     $item = $items[$index]
     [string]$temp = ""
     if ($item.IsUpdateAvailable) {
-      $icon = "↺"
+      $icon = "↺ "
     }
+    $i = 0
     $columns | ForEach-Object {
       $fieldname = $_.FieldName
-      $width = [int32]$_.ExactWidth
-      # $buffer = TruncateString -InputString $([string]$item."$fieldname") -MaxLength $width -Align $_.Align
-      # $buffer = padRightUTF8 -text $([string]$item."$fieldname") -length $width
+      $width = [int]$_.ExactWidth -1
       $buffer = [candyString]::PadString($([string]$item."$fieldname"), $width, " ", $_.Align)
-      $temp = [string]::Concat($temp, [string]$buffer, " ")
+
+      $temp = [string]::Concat($temp, [string]$buffer)
+      if ($i -lt $columns.Count - 1) {
+        $temp = [string]::Concat($temp, " ")
+      }
+      $i++
     }
-    [ListItem]$li = [ListItem]::new($temp, $item, $icon, [Colors]::Green()) 
-    $li.IconColor = [Color]::New([Colors]::Orange())
+    [ListItem]$li = [ListItem]::new($temp, $item, $icon) 
     $result.Add($li)
     $index ++
   }
@@ -66,21 +87,6 @@ function makeExactColWidths {
   }
 }
 
-function makeHeader {
-  param(
-    [column[]]$columns,
-    [int]$width
-  )
-  [string]$temp = ""
-   
-  $columns | ForEach-Object {
-    $fieldname = $_.FieldName
-    $w = [int32]$_.ExactWidth 
-    $buffer = [candyString]::PadString($fieldname, $w, " ", $_.Align)
-    $temp = [string]::Concat($temp, [string]$buffer, " ")
-  }
-  return $temp
-}
 
 function makeTitle {
   param(

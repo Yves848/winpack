@@ -1,7 +1,9 @@
-﻿using module psCandy
+﻿# using module psCandy
+# Import-Module C:\Users\yvesg\git\psCandy\Classes\psCandy.psm1
+Import-Module pscandy
 Import-Module "$PSScriptRoot\visuals.ps1" -Force
 Import-Module "$PSScriptRoot\classes.ps1" -Force
-Import-Module "$PSScriptRoot\tools.ps1" -Force
+# Import-Module "$PSScriptRoot\tools.ps1" -Force
 
 . "$PSscriptRoot\GumEnv.ps1"
 
@@ -84,13 +86,13 @@ function ShowPackages {
     [bool]$update = $false,
     [bool]$uninstall = $false
   )
-  $width = $Host.UI.RawUI.BufferSize.Width - 2
-  $height = $Host.UI.RawUI.BufferSize.Height - 9
+  $width = ($Host.UI.RawUI.BufferSize.Width - 9)
+  $height = ($Host.UI.RawUI.BufferSize.Height - 9)
   [column[]]$cols = @()
-  $cols += [column]::new("Name", "Name", 35)
-  $cols += [column]::new("Id", "Id", 35)
-  $cols += [column]::new("InstalledVersion", "Version", 17, [Align]::Right)
-  $cols += [column]::new("Source", "Source", 13)
+  $cols += [column]::new("Name", "Name", 40)
+  $cols += [column]::new("Id", "Id", 40)
+  $cols += [column]::new("InstalledVersion", "Version", 12, [Align]::Right)
+  $cols += [column]::new("Source", "Source", 8, [Align]::Right)
   
   makeExactColWidths -cols $cols -maxwidth $width
 
@@ -104,33 +106,22 @@ function ShowPackages {
   else {
     $title = "List of Installed Packages"
   }
-  $header = makeHeader -columns $cols -width $width
+  $header = makeHeader -columns $cols -width ($width)
   
-  # $Spinner.Stop()
   [console]::clear()
-  $titre = [Style]::new($title)
-  $titre.SetBorder($true)
-  $titre.SetColor([Colors]::Coral())
-  $titre.SetAlign([Align]::Center) 
-  $headercolor = [color]::new([colors]::Aqua())
-  $headercolor.Style = [Styles]::Underline
-  [console]::writeline($titre.Render())
-
+  Write-Candy -Text "<Coral>$($title)</Coral>" -Border "rounded" -fullscreen -Align Center
   $list = [List]::new($choices)
-    $list.SetHeight($height)
-    # $list.SetBorder($true)
-    $list.setHeader($header)
-    $list.headerColor = $headercolor
-    # $list.SetLimit($true)
-    $c = $list.Display()
-    [package[]]$packages = @()
-    if ($c) {
-      $c | ForEach-Object {
-        $packages += $_.Value
-      }
+  $list.SetHeight($height)
+  # $list.SetBorder($true)
+  $list.setHeader("<Aqua>$header</Aqua>")
+  $c = $list.Display()
+  [package[]]$packages = @()
+  if ($c) {
+    $c | ForEach-Object {
+      $packages += $_.Value
     }
-    Clear-Host
-  # Return choosen packages without the "Available" property
+  }
+  Clear-Host
   return $packages #| Select-Object -Property * -ExcludeProperty Available
 }
 
@@ -230,26 +221,24 @@ function Find-WGPackage {
   [Spinner]$Spinner
   $SearchParams = @{}
   $Y = $host.ui.rawui.CursorPosition.Y 
-  $width = $Host.UI.RawUI.BufferSize.Width - 2
+  $width = $Host.UI.RawUI.BufferSize.Width - 8
   
   if (-not $query -or $null -eq $query) {
-    $buffer = gum style "Enter search query" --border "rounded" --width $width
-    $buffer | ForEach-Object {
-      [System.Console]::write($_)
-    }
+    write-candy "<33>Enter a query to search for a package</33>" -border "rounded" -fullscreen  -align center
+    
     $query = gum input --placeholder "Search for a package" 
     $SearchParams.Add("query", $query)
   }
 
   if ($source) {
     $SearchParams.Add("source", $source)
+    $source = build-candy "<I><DodgerBlue>$source</DodgerBlue></I>"
   }
   else {
-    $source = gum style "every sources" --foreground "#FF0000"
+    $source = build-candy "<I><Red>every sources</Red></I>" 
   }
 
   if ($query) {
-    # $title = gum style $query --foreground "#00FF00" --bold
     $Spinner = [Spinner]::new("Dots")
     
     $queries = $query.Split(",")
@@ -273,7 +262,7 @@ function Find-WGPackage {
     [System.Console]::setcursorposition(0, $Y)
     $buffer = [Style]::new("No query specified")
     $buffer.SetBorder($true)
-    $buffer.SetColor([Colors]::White(),[Colors]::Red())
+    $buffer.SetColor([Colors]::White(), [Colors]::Red())
     [Console]::Write($buffer.Render())
     Start-Sleep -Seconds 1
     return $null
@@ -281,10 +270,10 @@ function Find-WGPackage {
   if ($packages) {
    
     [column[]]$cols = @()
-    $cols += [column]::new("Name", "Name", 35)
-    $cols += [column]::new("Id", "Id", 35)
-    $cols += [column]::new("Available", "Version", 17, [Align]::Right)
-    $cols += [column]::new("Source", "Source", 13)
+    $cols += [column]::new("Name", "Name", 40)
+    $cols += [column]::new("Id", "Id", 40)
+    $cols += [column]::new("Available", "Version", 12, [Align]::Right)
+    $cols += [column]::new("Source", "Source", 8, [Align]::Right)
 
     makeExactColWidths -cols $cols -maxwidth $width
 
@@ -293,19 +282,14 @@ function Find-WGPackage {
       $InstalledPackages += [package]::new($_.Name, $_.Id, $_.AvailableVersions, $_.Source, $_.IsUpdateAvailable, $_.InstalledVersion)
     }
     [System.Collections.Generic.List[ListItem]]$choices = makeItems -columns $cols -items $InstalledPackages
-    $height = $Host.UI.RawUI.BufferSize.Height - 9
+    # $height = $Host.UI.RawUI.BufferSize.Height - 9
     [System.Console]::setcursorposition(0, $Y)
     $header = makeHeader -columns $cols -width $width
     $Spinner.Stop()
     Clear-Host
-    $headercolor = [color]::new([colors]::Aqua())
-    $headercolor.Style = [Styles]::Underline
-    
-    write-candy -text "<CornflowerBlue>Choose Packages to Install</CornflowerBlue>" -Border "rounded" -Width $width -Align Center
+    Write-Candy -Text "<CornflowerBlue>Choose Packages to Install</CornflowerBlue>" -Border "rounded" -Width $width -Align Center
     $list = [List]::new($choices)
-    $list.SetHeight($height)
-    # $list.SetBorder($true)
-    $list.setHeader($header)
+    $list.setHeader("<Aqua>$($header)</Aqua>")
     $list.headerColor = $headercolor
     $c = $list.Display()
     [package[]]$packages = @()
@@ -422,21 +406,21 @@ function Start-Winpack {
   $width = $Host.UI.RawUI.BufferSize.Width - 2
   while ($result -ne -1) {
     [Console]::setcursorposition(0, 0)
-    write-candy -Text "<Yellow>Welcome to Winpack</Yellow> <CornflowerBlue><Italic>$($script:version)</Italic></CornflowerBlue>" -Border "rounded" -Width $width -Align Center
+    Write-Candy -Text "<Yellow>Welcome to Winpack</Yellow> <CornflowerBlue><Italic>$($script:version)</Italic></CornflowerBlue>" -Border "rounded" -fullscreen -Align Center
     
     $items = [System.Collections.Generic.List[ListItem]]::new()
     $items.Add([ListItem]::new("Find Packages", 0, "🔎"))
     $items.Add([ListItem]::new("List Installed Packages", 1, "📃"))
     $items.Add([ListItem]::new("Install Packages", 2, "📦"))
     $items.Add([ListItem]::new("Update Packages", 3, "🌀"))
-    $items.Add([ListItem]::new("Uninstall Packages", 4, "🗑️",[Colors]::Red()))
+    $items.Add([ListItem]::new("<Red>Uninstall Packages</Red>", 4, "🗑️"))
     $items.Add([ListItem]::new("Build Script", 5, "📜"))
     $items.Add([ListItem]::new("Exit", 100, "❌"))
     
 
     $list = [List]::new($items)  
     $list.SetLimit($true)
-    $list.SetWidth($width)
+    # $list.SetWidth($width)
     $index = $list.Display()
     switch ($index.value) {
       0 { $null = Find-WGPackage -source "winget" }

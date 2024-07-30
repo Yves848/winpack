@@ -1,4 +1,5 @@
-﻿using module psCandy
+﻿# using module psCandy
+# Import-Module psCandy
 
 class column {
   [string]$FieldName
